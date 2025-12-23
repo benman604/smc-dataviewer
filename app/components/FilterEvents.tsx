@@ -2,6 +2,8 @@
 "use client";
 
 import { FaultType } from '../lib/definitions'
+import { useState } from 'react';
+
 export type Filters = {
     startDate?: string; // YYYY-MM-DD
     endDate?: string;   // YYYY-MM-DD
@@ -33,6 +35,62 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
             current.delete(type);
         }
         onChange({ ...filters, faultTypes: Array.from(current) });
+    }
+
+    const [error, setError] = useState<string | null>(null);
+
+    const validateAndApply = () => {
+        const { startDate, endDate, faultTypes, evName, magMin, magMax } = filters as Filters;
+
+        // dates
+        if (startDate && isNaN(Date.parse(startDate))) {
+            setError('Start date is not a valid date');
+            return;
+        }
+        if (endDate && isNaN(Date.parse(endDate))) {
+            setError('End date is not a valid date');
+            return;
+        }
+        if (startDate && endDate) {
+            const s = new Date(startDate);
+            const e = new Date(endDate);
+            if (s > e) {
+                setError('Start date must be before end date');
+                return;
+            }
+        }
+
+        // faultTypes: allow empty (Any) or array of valid FaultType codes
+        const ft = (faultTypes || []) as unknown as string[];
+        if (!Array.isArray(ft)) {
+            setError('Fault types invalid');
+            return;
+        }
+        const allowed = new Set(['NM', 'RV', 'SS']);
+        for (const t of ft) {
+            if (!allowed.has(t)) {
+                setError('Fault types contain invalid value');
+                return;
+            }
+        }
+
+        // evName: only allow letters, numbers, space, dash, underscore
+        if (evName && !/^[A-Za-z0-9 _-]*$/.test(evName)) {
+            setError('Event name contains invalid characters');
+            return;
+        }
+
+        // magnitude range
+        if (magMin !== null && magMax !== null && magMin !== undefined && magMax !== undefined) {
+            if (magMin > magMax) {
+                setError('Minimum magnitude must be less than maximum magnitude');
+                return;
+            }
+        }
+
+        // all good
+        setError(null);
+        onApply();
     }
 
     return (
@@ -125,9 +183,11 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
                 onChange={(e) => update({ evName: e.target.value })}
             />
 
+            {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+
             <button 
-                className="mt-2 w-full bg-black text-white text-sm p-1 hover:bg-gray-800 cursor-pointer"
-                onClick={onApply}
+                className="mt-2 w-full bg-black text-white text-sm p-1 hover:bg-gray-800 cursor-pointer rounded"
+                onClick={validateAndApply}
             >
                 Apply Filters
             </button>

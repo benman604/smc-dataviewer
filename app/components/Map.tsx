@@ -62,7 +62,7 @@ function MapInit({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
 }
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMap, faCircleInfo, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faMap, faCircleInfo, faTimes, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 
 const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
@@ -72,14 +72,14 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   });
   const basemaps: Record<string, { name: string; url: string; attribution?: string; overlay?: { url: string; attribution?: string } | null }> = {
     osm: { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
-    topo: { name: 'Topo (OpenTopoMap)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap contributors' },
+    topo: { name: 'Topographic (OpenTopoMap)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap contributors' },
     sat:   { 
-      name: "Satellite",
+      name: "Satellite (Esri)",
       url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      attribution: "Esri",
+      attribution: "&copy; Esri",
       overlay: {
         url: "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-        attribution: "Esri"
+        attribution: "&copy; Esri"
       },
     },
   };
@@ -136,7 +136,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           <div className="w-44 p-2 bg-white/95 text-sm text-stone-700">
             <div className="flex justify-between items-center">
               <div className="font-medium">Basemap</div>
-              <button className="text-stone-500" onClick={() => setShowBasemap(false)}><FontAwesomeIcon icon={faTimes} /></button>
+              <button className="text-stone-500 cursor-pointer" onClick={() => setShowBasemap(false)}><FontAwesomeIcon icon={faCircleXmark} /></button>
             </div>
             <div className="mt-2 flex flex-col gap-2">
               {Object.entries(basemaps).map(([key, bm]) => (
@@ -151,7 +151,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
 
         <div className="flex gap-2">
           <button
-            className={`p-1 text-xl text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+            className={`p-1 text-xl cursor-pointer text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
             title="Legend"
             onClick={() => {
               setShowLegend((s) => !s);
@@ -162,7 +162,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           </button>
 
           <button
-            className={`p-1 text-xl text-stone-700 ${showBasemap ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+            className={`p-1 text-xl cursor-pointer text-stone-700 ${showBasemap ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
             title="Basemap"
             onClick={() => {
               setShowBasemap((s) => !s);

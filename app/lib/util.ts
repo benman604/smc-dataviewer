@@ -71,3 +71,8 @@ export function faultIdToName(faultId: FaultType): string {
     }
 }
 
+// Converts to ISO-8601 UTC
+export function parseImplicitUTCToLocal(time: string): Date {
+  // "2011-03-11 05:46:23" → "2011-03-11T05:46:23Z"
+  return new Date(time.replace(" ", "T") + "Z");
+}

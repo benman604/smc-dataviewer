@@ -7,7 +7,7 @@ import FilterEvents from "./components/FilterEvents";
 import EventLegend from "./components/EventLegend";
 import { Filters } from "./components/FilterEvents";
 import { Event } from "./lib/definitions";
-import { bboxToCenterZoom, timeToIconColor, faultIdToName } from "./lib/util";
+import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal } from "./lib/util";
 import { useState, useEffect, useMemo } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -20,7 +20,6 @@ type OrderBy = {
 }
 
 export default function Home() {
-
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [updateMapView, setUpdateMapView] = useState<boolean>(false);
@@ -33,6 +32,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [orderBy, setOrderBy] = useState<OrderBy>({ field: "time", direction: "desc" });
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
+  const [panelOpen, setPanelOpen] = useState<boolean>(false);
 
   const getStartDate: () => Date = () => {
     const date = new Date(Date.now());
@@ -61,7 +61,6 @@ export default function Home() {
     endDate: "",
     // empty array represents Any (no specific fault-type filter)
     faultTypes: [],
-    // event name filter
     evName: "",
     magMin: null,
     magMax: null,
@@ -76,7 +75,7 @@ export default function Home() {
     });
   }
 
-  const SMCDataURL: (withFilters: boolean) => string = (withFilters) => {
+  function SMCDataURL(withFilters: boolean): string {
     if (withFilters) {
       const params = new URLSearchParams();
       if (filters.startDate) params.append("startdate", filters.startDate);
@@ -129,7 +128,7 @@ export default function Home() {
     } catch (err: any) {
       console.error(err);
       setEvents([]);
-      setSelectedEvent(null);
+      closeSelectedEvent(true);
       setError(err?.message ?? "Failed to fetch events");
     } finally {
       setLoading(false);
@@ -158,7 +157,7 @@ export default function Home() {
     // compute startDate from the current recency now (avoid relying on startDate state which updates async)
     const computedStart = getStartDate();
     setEvents([]);
-    setSelectedEvent(null);
+    closeSelectedEvent();
     // update startDate state and reset filters using the freshly computed date so the default doesn't lag
     setStartDate(computedStart);
     setFilters({
@@ -171,6 +170,22 @@ export default function Home() {
     });
     fetchEvents();
   }, [recency]);
+
+  // keep panelOpen in sync with selectedEvent
+  useEffect(() => {
+    if (selectedEvent) setPanelOpen(true);
+  }, [selectedEvent]);
+
+  function closeSelectedEvent(immediate=false) {
+    if (immediate) {
+      setPanelOpen(false);
+      setSelectedEvent(null);
+      return;
+    }
+    setPanelOpen(false);
+    // wait for exit animation then clear selectedEvent
+    setTimeout(() => setSelectedEvent(null), 100);
+  }
 
   useEffect(() => {
     if (selectedEvent === null) return;
@@ -213,7 +228,7 @@ export default function Home() {
 
       <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
         <aside className="w-80 flex flex-col border-r border-stone-300">
-          <div className="p-4 border-b border-b-stone-300">
+          <div className="px-4 pt-4 pb-2 border-b border-b-stone-300">
             <h2 className="font-large libre-baskerville font-bold">Internet Quick Report</h2>
             {/* Loading / Error / Count */}
             <div className="mt-1">
@@ -242,7 +257,7 @@ export default function Home() {
                 {(["Day", "Week", "Month", "Year"] as Recency[]).map((r) => (
                   <button
                     key={r}
-                    className={`w-full py-2 text-sm hover:cursor-pointer ${recency === r ? 'bg-purple-600 text-white' : 'bg-stone-200 hover:bg-stone-300'}`}
+                    className={`rounded w-full py-2 text-sm hover:cursor-pointer ${recency === r ? 'bg-purple-600 text-white' : 'bg-stone-200 hover:bg-stone-300'}`}
                     onClick={() => setRecency(r)}
                   >
                     {r}
@@ -251,25 +266,25 @@ export default function Home() {
               </div>
             )}
 
-            {filterOpen && (
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filterOpen ? 'max-h-96 translate-y-0 opacity-100' : 'max-h-0 -translate-y-3 opacity-0 pointer-events-none'}`}>
               <FilterEvents filters={filters} onChange={setFilters} onApply={() => {
                 fetchEvents(true);
                 setRecency(null);
-                setSelectedEvent(null);
+                closeSelectedEvent();
               }} />
-            )}
+            </div>
 
-            <div className="mt-3 flex items-center text-s">
+            <div className="mt-2 flex items-center text-s">
               {/* Left: Filter link */}
               <div className="flex-1">
-                <button className="text-blue-600 hover:text-blue-700 hover:cursor-pointer" onClick={() => setFilterOpen(!filterOpen)}>
+                <button className="text-blue-600 hover:text-blue-700 hover:cursor-pointer text-sm" onClick={() => setFilterOpen(!filterOpen)}>
                   <FontAwesomeIcon icon={filterOpen ? faCircleXmark : faFilter} /> {filterOpen ? 'Close' : 'Filter'}
                 </button>
               </div>
 
               {/* Right: Order by */}
               <div className="flex-2 flex justify-end items-center gap-1 text-stone-600">
-                <span>Order by</span>
+                <span className="text-sm">Order by</span>
 
                 {/* Dropdown */}
                 <select
@@ -290,6 +305,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            <label className="mt-1 flex gap-1 text-sm">
+              <input type="checkbox" />
+              Only list earthquakes visible in map
+            </label>
           </div>
 
           <div className="flex-1 overflow-auto p-0 m-0" role="list">
@@ -315,7 +335,7 @@ export default function Home() {
                     <div className="flex-1">
                       <p className="leading-tight">{event.properties.title}</p>
                       <p className="text-xs text-stone-500">
-                        {event.properties.place}, {new Date(event.properties.time).toLocaleString()}
+                        {event.properties.place}, {parseImplicitUTCToLocal(event.properties.time).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -333,64 +353,67 @@ export default function Home() {
               ))}
             </Map>
             
-            {/* Floating panel */}
-            {selectedEvent && 
-              <div className="absolute top-4 right-4 w-80 p-4 bg-white border border-stone-300" style={{ zIndex: 100000 }}>
-                {/* close button (positioned top-right, icon-only for alignment) */}
-                <button
-                  className="flex items-center justify-center pt-0 mt-0 mb-2 text-blue-500 hover:text-blue-700 hover:cursor-pointer"
-                  onClick={() => setSelectedEvent(null)}
-                  aria-label="Close"
-                >
-                  <FontAwesomeIcon icon={faCircleXmark} />
-                  <span className="ml-1">Close</span>
-                </button>
-                <h2 className="font-bold">{selectedEvent.properties.magType} {selectedEvent.properties.mag} {selectedEvent.properties.title}</h2>
-                <p className="mt-2 flex flex-wrap gap-2 text-sm text-stone-600">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                    <span className="font-medium text-stone-700">Lat</span>
-                    {selectedEvent.geometry.coordinates[1]}
-                    <span className="font-medium text-stone-700">Lon</span>
-                    {selectedEvent.geometry.coordinates[0]}
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                    <span className="font-medium text-stone-700">Depth</span>
-                    {selectedEvent.geometry.coordinates[2]} km
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                    {selectedEvent.properties.RecordNum}
-                    <span className="font-medium text-stone-700">Records</span>
-                  </span>
-
-                  {selectedEvent.properties.faultType &&
+            {/* Floating panel (animated) */}
+            <div className={`absolute top-4 right-4 w-80 p-4 bg-white border border-stone-300 transform transition-all duration-300 ease-in-out ${panelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`} style={{ zIndex: 100000 }} aria-hidden={!panelOpen}>
+              {/* close button (positioned top-right) */}
+              <button
+                className="flex items-center justify-center pt-0 mt-0 mb-2 text-blue-500 hover:text-blue-700 hover:cursor-pointer"
+                onClick={() => closeSelectedEvent()}
+                aria-label="Close"
+              >
+                <FontAwesomeIcon icon={faCircleXmark} />
+                <span className="ml-1">Close</span>
+              </button>
+              {selectedEvent && (
+                <>
+                  <h2 className="font-bold">{selectedEvent.properties.magType} {selectedEvent.properties.mag} {selectedEvent.properties.title}</h2>
+                  <p>{new Date(selectedEvent.properties.time).toLocaleString()} UTC</p>
+                  <p className="mt-2 flex flex-wrap gap-2 text-sm text-stone-600">
                     <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                      {faultIdToName(selectedEvent.properties.faultType)}
-                      <span className="font-medium text-stone-700">Fault</span>
+                      <span className="font-medium text-stone-700">Lat</span>
+                      {selectedEvent.geometry.coordinates[1]}
+                      <span className="font-medium text-stone-700">Lon</span>
+                      {selectedEvent.geometry.coordinates[0]}
                     </span>
-                  }
-                </p>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
-                    title="Interactive Map"
-                  >
-                    <span className="text-sm font-medium">Interactive Map</span>
-                    <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
-                  </button>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                      <span className="font-medium text-stone-700">Depth</span>
+                      {selectedEvent.geometry.coordinates[2]} km
+                    </span>
 
-                  <button
-                    className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
-                    title="ShakeMap"
-                  >
-                    <span className="text-sm font-medium">ShakeMap</span>
-                    <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
-                  </button>
-                </div>
-              </div>
-            }
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                      {selectedEvent.properties.RecordNum}
+                      <span className="font-medium text-stone-700">Records</span>
+                    </span>
+
+                    {selectedEvent.properties.faultType &&
+                      <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                        {faultIdToName(selectedEvent.properties.faultType)}
+                        <span className="font-medium text-stone-700">Fault</span>
+                      </span>
+                    }
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
+                      title="Interactive Map"
+                    >
+                      <span className="text-sm font-medium">Interactive Map</span>
+                      <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
+                    </button>
+
+                    <button
+                      className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
+                      title="ShakeMap"
+                    >
+                      <span className="text-sm font-medium">ShakeMap</span>
+                      <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </section>
         </main>
       </div>

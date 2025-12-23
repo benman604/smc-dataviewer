@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { timeToIconColor, magToIconDiameter } from '../lib/util';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 
 type EventLegendProps = {
   onClose?: () => void;
@@ -13,7 +15,10 @@ export default function EventLegend({ onClose, children }: EventLegendProps) {
     <div>
       <div className="flex justify-between items-center">
         <div className="font-medium">Legend</div>
-        {onClose && <button className="text-stone-500" onClick={onClose}>✕</button>}
+        {onClose && <button className="text-stone-500 cursor-pointer" onClick={onClose}>
+          <FontAwesomeIcon icon={faCircleXmark} />
+        </button>
+        }
       </div>
       <div className="mt-2">
         <div className="font-semibold text-xs">Recency (color)</div>
