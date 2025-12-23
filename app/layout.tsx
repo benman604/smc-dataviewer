@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { BBH_Bogle } from "next/font/google";
+import { Libre_Baskerville } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const libreBaskerville = Libre_Baskerville({
+  variable: "--font-libre-baskerville",
   subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sourceSans = Source_Sans_3({
+  variable: "--font-source-sans-3",
   subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
+
+const BBHBogle = BBH_Bogle({
+  variable: "--font-bbh-bogle",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${libreBaskerville.variable} ${sourceSans.variable} ${BBHBogle.variable} antialiased`}
       >
         {children}
       </body>
