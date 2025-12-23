@@ -19,7 +19,7 @@ export function bboxToCenterZoom(bbox: number[]) {
   };
 }
 
-export function timeToColor(timeStr: string): string {
+export function timeToIconColor(timeStr: string): string {
     const now = new Date();
     const time = new Date(timeStr);
 
@@ -48,3 +48,26 @@ export function timeToColor(timeStr: string): string {
     if (diffDay <= 365) return colors.year;    // older than a month up to a year
     return colors.other;                       // older than a year
 }
+
+export function magToIconDiameter(mag: number): number {
+  return mag < 3 ? 15 :
+         mag < 4 ? 25 :
+         mag < 5 ? 40 :
+         mag < 6 ? 50 :
+         70;
+}
+
+import { FaultType } from './definitions';
+export function faultIdToName(faultId: FaultType): string {
+    switch (faultId) {
+        case 'NM':
+            return 'Normal';
+        case 'RV':
+            return 'Reverse';
+        case 'SS':
+            return 'Strike-Slip';
+        default:
+            return faultId;
+    }
+}
+

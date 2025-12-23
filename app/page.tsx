@@ -1,11 +1,13 @@
 "use client";
-import Map from "./components/Map";
-import { MapView } from "./components/Map";
-import EventMarker from "./components/EventMarker";
+import dynamic from 'next/dynamic';
+const Map = dynamic(() => import('./components/Map'), { ssr: false });
+import type { MapView } from "./components/Map";
+const EventMarker = dynamic(() => import('./components/EventMarker'), { ssr: false });
 import FilterEvents from "./components/FilterEvents";
+import EventLegend from "./components/EventLegend";
 import { Filters } from "./components/FilterEvents";
 import { Event } from "./lib/definitions";
-import { bboxToCenterZoom, timeToColor } from "./lib/util";
+import { bboxToCenterZoom, timeToIconColor, faultIdToName } from "./lib/util";
 import { useState, useEffect, useMemo } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -59,6 +61,8 @@ export default function Home() {
     endDate: "",
     // empty array represents Any (no specific fault-type filter)
     faultTypes: [],
+    // event name filter
+    evName: "",
     magMin: null,
     magMax: null,
   }
@@ -77,6 +81,7 @@ export default function Home() {
       const params = new URLSearchParams();
       if (filters.startDate) params.append("startdate", filters.startDate);
       if (filters.endDate) params.append("enddate", filters.endDate);
+      if (filters.evName) params.append("evname", filters.evName);
       if (filters.faultTypes && filters.faultTypes.length > 0) {
         params.append("faulttype", filters.faultTypes.join(","));
       }
@@ -160,6 +165,7 @@ export default function Home() {
       startDate: computedStart.toISOString().slice(0, 10),
       endDate: "",
       faultTypes: [],
+      evName: "",
       magMin: null,
       magMax: null,
     });
@@ -227,7 +233,7 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <p className="text-xs">Showing {events.length} earthquake{events.length !== 1 ? 's' : ''} {recency && `from the past ${recency.toLowerCase()}` }.</p>
+                <p className="text-xs">Showing {events.length} earthquake{events.length !== 1 ? 's' : ''} {recency && `from the past ${recency.toLowerCase()}` }</p>
               )}
             </div>
 
@@ -290,7 +296,7 @@ export default function Home() {
             {visibleEvents.map((event: Event, i) => (
               <div key={event.id ?? i} id={`list-event-${event.id}`} className="w-full" role="listitem">
                 <div 
-                  className={`px-4 py-2 border-b border-stone-300 ${selectedEvent?.id === event.id ? 'bg-purple-200 ring-5 ring-purple-400' : 'bg-stone-50 hover:bg-stone-100 cursor-pointer'}`}
+                  className={`px-4 py-2 border-b border-stone-300 ${selectedEvent?.id === event.id ? 'bg-purple-200 border-t-5 border-t-purple-400' : 'bg-stone-50 hover:bg-stone-100 cursor-pointer'}`}
                   onClick={() => setSelectedEvent(event)}
                 >
 
@@ -299,7 +305,7 @@ export default function Home() {
                     <div className="shrink-0">
                       <div 
                         className="w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center border border-stone-500"
-                        style={{ backgroundColor: timeToColor(event.properties.time) }}
+                        style={{ backgroundColor: timeToIconColor(event.properties.time) }}
                       >
                         {event.properties.mag?.toFixed(1) ?? "-"}
                       </div>
@@ -321,7 +327,7 @@ export default function Home() {
 
         <main className="flex-1 min-h-0">
           <section className="h-full min-h-0 relative">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)}>
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />}>
               {visibleEvents.map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
               ))}
@@ -341,7 +347,6 @@ export default function Home() {
                 </button>
                 <h2 className="font-bold">{selectedEvent.properties.magType} {selectedEvent.properties.mag} {selectedEvent.properties.title}</h2>
                 <p className="mt-2 flex flex-wrap gap-2 text-sm text-stone-600">
-                  {selectedEvent.properties.time}
                   <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
                     <span className="font-medium text-stone-700">Lat</span>
                     {selectedEvent.geometry.coordinates[1]}
@@ -361,8 +366,8 @@ export default function Home() {
 
                   {selectedEvent.properties.faultType &&
                     <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                      {faultIdToName(selectedEvent.properties.faultType)}
                       <span className="font-medium text-stone-700">Fault</span>
-                      {selectedEvent.properties.faultType}
                     </span>
                   }
                 </p>

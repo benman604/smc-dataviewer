@@ -1,12 +1,14 @@
 
 "use client";
 
-type FaultType = 'NM' | 'RV' | 'SS';
+import { FaultType } from '../lib/definitions'
 export type Filters = {
     startDate?: string; // YYYY-MM-DD
     endDate?: string;   // YYYY-MM-DD
     // empty array = Any (no specific fault type filter)
     faultTypes: FaultType[];
+    // event name filter (mapped to evname query param)
+    evName?: string;
     magMin?: number | null;
     magMax?: number | null;
 }
@@ -113,6 +115,15 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
                     onChange={(e) => update({ magMax: e.target.value === "" ? null : Number(e.target.value) })}
                 />
             </div>
+
+            <p className="text-xs text-stone-600 mt-1">Earthquake name:</p>
+            <input
+                type="text"
+                className="w-full text-xs p-1 border border-stone-300 rounded"
+                placeholder="Name"
+                value={filters.evName ?? ""}
+                onChange={(e) => update({ evName: e.target.value })}
+            />
 
             <button 
                 className="mt-2 w-full bg-black text-white text-sm p-1 hover:bg-gray-800 cursor-pointer"

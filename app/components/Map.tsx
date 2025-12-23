@@ -5,7 +5,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import "@luomus/leaflet-smooth-wheel-zoom";
 
 export type MapView = {
@@ -18,6 +18,7 @@ type MapProps = {
   children?: React.ReactNode;
   onViewChange?: (view: MapView) => void;
   updateMapView: boolean;
+  legend?: React.ReactNode;
 }
 
 export type MapHandle = {
@@ -60,14 +61,35 @@ function MapInit({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
   return null;
 }
 
-const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView }: MapProps, ref) {
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMap, faCircleInfo, faTimes } from '@fortawesome/free-solid-svg-icons'
+
+const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
   });
+  const basemaps: Record<string, { name: string; url: string; attribution?: string; overlay?: { url: string; attribution?: string } | null }> = {
+    osm: { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
+    topo: { name: 'Topo (OpenTopoMap)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap contributors' },
+    sat:   { 
+      name: "Satellite",
+      url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      attribution: "Esri",
+      overlay: {
+        url: "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Esri"
+      },
+    },
+  };
+  type BasemapKey = keyof typeof basemaps;
 
   const mapRef = useRef<L.Map | null>(null);
+  const [basemap, setBasemap] = useState<BasemapKey>('osm');
+  const [showLegend, setShowLegend] = useState<boolean>(false);
+  const [showBasemap, setShowBasemap] = useState<boolean>(false);
+
 
   useImperativeHandle(ref, () => ({
     setPos(center: [number, number], animate = false) {
@@ -92,11 +114,66 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       <ChangeView view={view} updateMapView={updateMapView} />
       <MapEvents onViewChange={onViewChange} />
       <MapInit mapRef={mapRef} />
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <TileLayer attribution={basemaps[basemap].attribution ?? ''} url={basemaps[basemap].url} key={"base-" + basemap} />
+      {basemaps[basemap].overlay && (
+        <TileLayer attribution={basemaps[basemap].overlay!.attribution ?? ''} url={basemaps[basemap].overlay!.url} key={"overlay-" + basemap} />
+      )}
+
       {children}
+
+      {/* Floating controls (lower-left) */}
+      <div className="absolute left-4 bottom-4 z-50 flex flex-col gap-2" style={{zIndex: 10000000}}>
+          {showLegend && (
+            <div className="w-48 p-2 bg-white/95 text-sm text-stone-700">
+              {legend && React.isValidElement(legend)
+                ? React.cloneElement(legend as any, { onClose: () => setShowLegend(false) })
+                : legend}
+            </div>
+          )}
+
+        {/* Basemap selector panel */}
+        {showBasemap && (
+          <div className="w-44 p-2 bg-white/95 text-sm text-stone-700">
+            <div className="flex justify-between items-center">
+              <div className="font-medium">Basemap</div>
+              <button className="text-stone-500" onClick={() => setShowBasemap(false)}><FontAwesomeIcon icon={faTimes} /></button>
+            </div>
+            <div className="mt-2 flex flex-col gap-2">
+              {Object.entries(basemaps).map(([key, bm]) => (
+                <label key={key} className="flex items-center gap-2 text-xs">
+                  <input type="radio" name="basemap" checked={basemap === key} onChange={() => setBasemap(key)} />
+                  <div>{bm.name}</div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            className={`p-1 text-xl text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+            title="Legend"
+            onClick={() => {
+              setShowLegend((s) => !s);
+              setShowBasemap(false);
+            }}
+          >
+            <FontAwesomeIcon icon={faCircleInfo} />
+          </button>
+
+          <button
+            className={`p-1 text-xl text-stone-700 ${showBasemap ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+            title="Basemap"
+            onClick={() => {
+              setShowBasemap((s) => !s);
+              setShowLegend(false);
+            }}
+          >
+            <FontAwesomeIcon icon={faMap} />
+          </button>
+        </div>
+
+      </div>
     </MapContainer>
   );
 });

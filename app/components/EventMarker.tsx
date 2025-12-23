@@ -1,8 +1,8 @@
 import { Event } from "../lib/definitions";
-import { timeToColor } from "../lib/util";
+import { timeToIconColor, magToIconDiameter } from "../lib/util";
 import { Marker, Popup } from 'react-leaflet'
 import L from 'leaflet';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type EventMarkerProps = {
     event: Event;
@@ -12,13 +12,7 @@ type EventMarkerProps = {
 
 export default function EventMarker({ event, onSelect, isSelected = false }: EventMarkerProps) {
     const markerRef = useRef<L.Marker | null>(null);
-    const diameter = ((mag) =>
-        mag < 3 ? 15 : 
-        mag < 4 ? 25 :
-        mag < 5 ? 40 :
-        mag < 6 ? 50 :
-        70
-    )(event.properties.mag ?? 0) ;//* (isSelected ? 2 : 1);
+    const diameter = magToIconDiameter(event.properties.mag ?? 0);
 
     const icon = L.divIcon({
         className: '',
@@ -27,7 +21,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
             width:${diameter}px;
             height:${diameter}px;
             line-height:${diameter}px;
-            background-color: ${timeToColor(event.properties.time)};
+            background-color: ${timeToIconColor(event.properties.time)};
             outline: ${isSelected ? 5 : 1}px solid black;
             border-radius: 50%;
             text-align: center;

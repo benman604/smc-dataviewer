@@ -1,3 +1,4 @@
+export type FaultType = 'NM' | 'RV' | 'SS';
 
 export type Event = {
 	cesmd_id: string;
@@ -12,7 +13,7 @@ export type Event = {
 		RecordNum: number;
 		country: string;
 		detail: string;
-		faultType: string | null;
+		faultType: FaultType | null;
 		mag: number | null;
 		magType: string | null;
 		net: string;
