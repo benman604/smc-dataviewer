@@ -18,7 +18,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
         mag < 5 ? 40 :
         mag < 6 ? 50 :
         70
-    )(event.properties.mag ?? 0) * (isSelected ? 2 : 1);
+    )(event.properties.mag ?? 0) ;//* (isSelected ? 2 : 1);
 
     const icon = L.divIcon({
         className: '',
@@ -28,7 +28,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
             height:${diameter}px;
             line-height:${diameter}px;
             background-color: ${timeToColor(event.properties.time)};
-            border: ${isSelected ? 5 : 1}px solid ${isSelected ? "#3250a8" : "#404040"};
+            outline: ${isSelected ? 5 : 1}px solid black;
             border-radius: 50%;
             text-align: center;
             font-weight: bold;
@@ -45,7 +45,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
         iconSize: [diameter, diameter],
         iconAnchor: [diameter / 2, diameter / 2]
     });
-    
+
     useEffect(() => {
         const marker = markerRef.current;
         if (!marker) return;

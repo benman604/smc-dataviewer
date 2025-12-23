@@ -15,7 +15,7 @@ export function bboxToCenterZoom(bbox: number[]) {
 
   return {
     center,
-    zoom: Math.min(Math.max(Math.round(zoom), 1), 20),
+    zoom: Math.min(Math.max(Math.round(zoom), 1), 10),
   };
 }
 
@@ -35,10 +35,10 @@ export function timeToColor(timeStr: string): string {
     // Colors selected to have similar brightness to #c6d2ff (past month)
     // You can tweak them as needed
     const colors = {
-        day: "#ffd2c6",   // pastel orange/pink
-        week: "#ffe6b3",  // pastel yellow
+        day: "#ffb19c",   // pastel orange/pink
+        week: "#fff585",  // pastel yellow
         month: "#c6d2ff", // pastel blue
-        year: "#c6ffc6",  // pastel green
+        year: "#87ff87",  // pastel green
         other: "#cccccc"  // neutral gray
     };
 

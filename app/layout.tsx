@@ -4,6 +4,10 @@ import { Libre_Baskerville } from "next/font/google";
 import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
+import { config } from '@fortawesome/fontawesome-svg-core'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+config.autoAddCss = false
+
 const libreBaskerville = Libre_Baskerville({
   variable: "--font-libre-baskerville",
   subsets: ["latin"],
