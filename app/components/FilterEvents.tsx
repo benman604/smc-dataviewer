@@ -113,7 +113,7 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
             </div>
 
             <p className="text-xs text-stone-600 mt-2">Fault type:</p>
-            <div className="flex flex-wrap gap-x-2 ">
+            <div className="flex flex-wrap gap-x-2 text-sm">
                 <label key="x" className="flex gap-1">
                     <input
                         type="checkbox"

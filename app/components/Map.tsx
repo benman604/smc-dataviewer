@@ -13,6 +13,13 @@ export type MapView = {
   zoom: number;
 }
 
+export type MapBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
 type MapProps = {
   view: MapView;
   children?: React.ReactNode;
@@ -35,13 +42,23 @@ function ChangeView({ view, updateMapView }: { view: MapView, updateMapView: boo
   return null;
 }
 
-function MapEvents({ onViewChange }: { onViewChange?: (view: MapView) => void }) {
+function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?: MapBounds }) => void }) {
   const map = useMap();
   useEffect(() => {
     if (!onViewChange) return;
     const handler = () => {
       const c = map.getCenter();
-      onViewChange({ center: [c.lat, c.lng], zoom: map.getZoom() });
+      const b = map.getBounds();
+      onViewChange({
+        center: [c.lat, c.lng],
+        zoom: map.getZoom(),
+        bounds: {
+          north: b.getNorth(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          west: b.getWest(),
+        }
+      });
     };
     map.on('moveend', handler);
     map.on('zoomend', handler);

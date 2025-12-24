@@ -33,6 +33,7 @@ export default function Home() {
   const [orderBy, setOrderBy] = useState<OrderBy>({ field: "time", direction: "desc" });
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
+  const [listVisibleOnly, setListVisibleOnly] = useState<boolean>(false);
 
   const getStartDate: () => Date = () => {
     const date = new Date(Date.now());
@@ -136,9 +137,22 @@ export default function Home() {
   }
 
   const visibleEvents = useMemo(() => {
-    return events
-      .filter((a: Event) => true) // pass all for now; filtering can be added later
-      .sort((a: Event, b: Event) => {
+    const filtered = events.filter((a: Event) => {
+      if (listVisibleOnly) {
+        // If the Map has provided bounds, filter events to those inside the current view
+        const bounds = (view as any).bounds;
+        if (bounds) {
+          const lat = a.geometry.coordinates[1];
+          const lon = a.geometry.coordinates[0];
+          const { north, south, east, west } = bounds;
+          if (lat < south || lat > north) return false;
+          if (lon < west || lon > east) return false;
+        }
+      }
+      return true;
+    });
+
+    return filtered.sort((a: Event, b: Event) => {
         if (orderBy.field === "time") {
           const timeA = new Date(a.properties.time).getTime();
           const timeB = new Date(b.properties.time).getTime();
@@ -150,7 +164,7 @@ export default function Home() {
         }
         return 0;
       });
-  }, [events, orderBy]);
+  }, [events, orderBy, view, listVisibleOnly]);
 
   useEffect(() => {
     if (recency == null) return;
@@ -204,7 +218,7 @@ export default function Home() {
       // smooth scroll and center the item in the visible area
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [selectedEvent]);
+  }, [selectedEvent, listVisibleOnly, listVisibleOnly ? visibleEvents : null]); // depend on visibleEvents iff listVisibleOnly
 
   return (
     <div className="h-screen flex flex-col">
@@ -307,7 +321,7 @@ export default function Home() {
             </div>
 
             <label className="mt-1 flex gap-1 text-sm">
-              <input type="checkbox" />
+              <input type="checkbox" checked={listVisibleOnly} onChange={() => setListVisibleOnly(!listVisibleOnly)} />
               Only list earthquakes visible in map
             </label>
           </div>
