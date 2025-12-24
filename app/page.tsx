@@ -205,26 +205,7 @@ export default function Home() {
   }, [selectedEvent, listVisibleOnly, visibleEvents]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <header className="h-16 flex items-center justify-between px-4 border-b border-stone-300" style={{zIndex: 10000000000}}> 
-        <div className="flex flex-col">
-          <div className="leading-none">
-            <span className="text-s">Strong Motion Center</span>
-          </div>
-          <div className="leading-none libre-baskerville font-bold">
-            <span className="text-xl">Data Viewer</span>
-          </div>
-        </div>
-        <div className="flex items-center h-full">
-          <button className="px-3 h-full font-semibold" title="Currently viewing earthquakes">Earthquakes</button>
-          <button className="px-3 py-1 ml-2 nav-btn">Stations</button>
-          <button className="px-3 py-1 ml-2 nav-btn">Archive</button>
-          <button className="px-3 py-1 ml-2 nav-btn">Search</button>
-          <button className="px-3 py-1 ml-2 nav-btn">Attribution</button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
+    <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
         <aside className="w-80 flex flex-col border-r border-stone-300">
           <div className="px-4 pt-4 pb-2 border-b border-b-stone-300">
             <h2 className="font-large libre-baskerville font-bold">Internet Quick Report</h2>
@@ -410,7 +391,7 @@ export default function Home() {
                     >
                       <span className="text-sm font-medium">ShakeMap</span>
                       <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
-                    </a>
+                    </a> 
                   </div>
                 </>
               )}
@@ -418,6 +399,5 @@ export default function Home() {
           </section>
         </main>
       </div>
-    </div>
   );
 }

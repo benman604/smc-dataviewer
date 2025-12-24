@@ -3,6 +3,7 @@ import { BBH_Bogle } from "next/font/google";
 import { Libre_Baskerville } from "next/font/google";
 import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
+import Header from "./components/Header";
 
 import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
@@ -41,7 +42,10 @@ export default function RootLayout({
       <body
         className={`${libreBaskerville.variable} ${sourceSans.variable} ${BBHBogle.variable} antialiased`}
       >
-        {children}
+        <div className="h-screen flex flex-col">
+          <Header />
+          {children}
+        </div>
       </body>
     </html>
   );
