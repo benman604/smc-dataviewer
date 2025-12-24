@@ -4,7 +4,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import "@luomus/leaflet-smooth-wheel-zoom";
 
@@ -33,7 +33,6 @@ type MapProps = {
   onViewChange?: (view: MapView) => void;
   updateMapView: boolean;
   legend?: React.ReactNode;
-  showPolygons?: boolean;
 }
 
 export type MapHandle = {
@@ -96,7 +95,7 @@ function MapInit({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMap, faCircleInfo, faTimes, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 
-const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend, showPolygons = false }: MapProps, ref) {
+const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
@@ -149,36 +148,6 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       <TileLayer attribution={basemaps[basemap].attribution ?? ''} url={basemaps[basemap].url} key={"base-" + basemap} />
       {basemaps[basemap].overlay && (
         <TileLayer attribution={basemaps[basemap].overlay!.attribution ?? ''} url={basemaps[basemap].overlay!.url} key={"overlay-" + basemap} />
-      )}
-
-      {/* Shakemap threshold polygons */}
-      {showPolygons && children && (
-        <>
-          {/* Import polygons from util */}
-          {(() => {
-            const { SHAKEMAP_THRESHOLD_EXCEPTIONS } = require('../lib/util');
-            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
-            return SHAKEMAP_THRESHOLD_EXCEPTIONS.map((region: any, idx: number) => (
-              <Polygon
-                key={region.name}
-                positions={region.polygon.map((p: any) => [p.lat, p.lon])}
-                pathOptions={{
-                  color: colors[idx % colors.length],
-                  fillColor: colors[idx % colors.length],
-                  fillOpacity: 0.15,
-                  weight: 2,
-                }}
-              >
-                <Tooltip permanent direction="center" className="polygon-label">
-                  <div className="text-xs font-semibold">
-                    {region.name}<br />
-                    threshold: {region.threshold}
-                  </div>
-                </Tooltip>
-              </Polygon>
-            ));
-          })()}
-        </>
       )}
 
       {children}

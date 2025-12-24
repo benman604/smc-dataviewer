@@ -2,6 +2,7 @@
 import dynamic from 'next/dynamic';
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 const EventMarker = dynamic(() => import('./components/EventMarker'), { ssr: false });
+const ShakemapPolygons = dynamic(() => import('./components/ShakemapPolygons'), { ssr: false });
 import type { MapView } from "./components/Map";
 import FilterEvents from "./components/FilterEvents";
 import EventLegend from "./components/EventLegend";
@@ -323,10 +324,10 @@ export default function Home() {
               Only list earthquakes visible in map
             </label>
 
-            <label className="mt-1 flex gap-1 text-sm">
+            {/* <label className="mt-1 flex gap-1 text-sm">
               <input type="checkbox" checked={showPolygons} onChange={() => setShowPolygons(!showPolygons)} />
               Show shakemap threshold regions
-            </label>
+            </label> */}
           </div>
 
           <div className="flex-1 overflow-auto p-0 m-0" role="list">
@@ -364,7 +365,8 @@ export default function Home() {
 
         <main className="flex-1 min-h-0">
           <section className="h-full min-h-0 relative">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} showPolygons={showPolygons}>
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />}>
+              {showPolygons && <ShakemapPolygons />}
               {visibleEvents.map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
               ))}
