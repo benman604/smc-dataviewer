@@ -7,7 +7,7 @@ import FilterEvents from "./components/FilterEvents";
 import EventLegend from "./components/EventLegend";
 import { EventFilters } from "./components/FilterEvents";
 import { Event } from "./lib/definitions";
-import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCDataURL, CISNShakemapURL } from "./lib/util";
+import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCDataURL, CISNShakemapURL, SHAKEMAP_THRESHOLD_EXCEPTIONS, getShakemapRegion, SHAKEMAP_DEFAULT_THRESHOLD } from "./lib/util";
 import { useState, useEffect, useMemo } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -34,6 +34,7 @@ export default function Home() {
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
   const [listVisibleOnly, setListVisibleOnly] = useState<boolean>(false);
+  const [showPolygons, setShowPolygons] = useState<boolean>(false);
 
   function getStartDate(): Date {
     const date = new Date(Date.now());
@@ -187,6 +188,19 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedEvent === null) return;
+    
+    // Debug log for shakemap region
+    const lat = selectedEvent.geometry.coordinates[1];
+    const lon = selectedEvent.geometry.coordinates[0];
+    const mag = selectedEvent.properties.mag ?? 0;
+    const region = getShakemapRegion(lat, lon);
+    
+    if (region) {
+      console.log(`📍 Event in polygon: ${region.name}, threshold: ${region.threshold}, magnitude: ${mag}`);
+    } else {
+      console.log(`📍 Event NOT in any polygon, using default threshold: ${SHAKEMAP_DEFAULT_THRESHOLD}, magnitude: ${mag}`);
+    }
+    
     setView({
       center: [selectedEvent.geometry.coordinates[1], selectedEvent.geometry.coordinates[0]],
       zoom: view.zoom
@@ -308,6 +322,11 @@ export default function Home() {
               <input type="checkbox" checked={listVisibleOnly} onChange={() => setListVisibleOnly(!listVisibleOnly)} />
               Only list earthquakes visible in map
             </label>
+
+            <label className="mt-1 flex gap-1 text-sm">
+              <input type="checkbox" checked={showPolygons} onChange={() => setShowPolygons(!showPolygons)} />
+              Show shakemap threshold regions
+            </label>
           </div>
 
           <div className="flex-1 overflow-auto p-0 m-0" role="list">
@@ -345,7 +364,7 @@ export default function Home() {
 
         <main className="flex-1 min-h-0">
           <section className="h-full min-h-0 relative">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />}>
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} showPolygons={showPolygons}>
               {visibleEvents.map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
               ))}

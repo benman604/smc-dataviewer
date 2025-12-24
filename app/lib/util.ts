@@ -21,7 +21,7 @@ export function bboxToCenterZoom(bbox: number[]) {
 
 export function timeToIconColor(timeStr: string): string {
     const now = new Date();
-    const time = new Date(timeStr);
+    const time = parseImplicitUTCToLocal(timeStr);
 
     if (isNaN(time.getTime())) {
         // Invalid date fallback
@@ -71,6 +71,117 @@ export function faultIdToName(faultId: FaultType): string {
     }
 }
 
+// Shakemap polygon types and constants
+export type LatLonPoint = { lat: number; lon: number };
+export type PolygonRegion = {
+  name: string;
+  threshold: number;
+  polygon: LatLonPoint[];
+};
+
+export const SHAKEMAP_DEFAULT_THRESHOLD = 3.5;
+export const SHAKEMAP_THRESHOLD_EXCEPTIONS: PolygonRegion[] = [
+  {
+    name: 'mendocino_offshore',
+    threshold: 4.0,
+    polygon: [
+      { lat: 40.00, lon: -124.80 },
+      { lat: 40.00, lon: -127.00 },
+      { lat: 42.00, lon: -127.00 },
+      { lat: 42.00, lon: -124.80 },
+      { lat: 40.00, lon: -124.80 }
+    ]
+  },
+  {
+    name: 'box_deepbaja',
+    threshold: 3.8,
+    polygon: [
+      { lat: 31.50, lon: -114.00 },
+      { lat: 31.50, lon: -118.50 },
+      { lat: 32.40, lon: -119.29 },
+      { lat: 32.40, lon: -114.00 }
+    ]
+  },
+  {
+    name: 'box_lametro',
+    threshold: 3.0,
+    polygon: [
+      { lat: 33.50, lon: -116.90 },
+      { lat: 33.50, lon: -118.25 },
+      { lat: 34.33, lon: -120.00 },
+      { lat: 34.50, lon: -120.00 },
+      { lat: 34.50, lon: -116.90 }
+    ]
+  },
+  {
+    name: 'box_sdmetro',
+    threshold: 3.0,
+    polygon: [
+      { lat: 32.40, lon: -116.75 },
+      { lat: 32.40, lon: -117.40 },
+      { lat: 33.00, lon: -117.40 },
+      { lat: 33.00, lon: -116.75 }
+    ]
+  }
+];
+
+/**
+ * Point-in-polygon algorithm using ray casting method
+ */
+export function pointInPolygon(point: LatLonPoint, polygon: LatLonPoint[]): boolean {
+  let numCrosses = 0;
+  const count = polygon.length;
+  
+  for (let i = 0; i < count; i++) {
+    const a = polygon[i];
+    const b = polygon[(i + 1) % count];
+    
+    if (a.lat === b.lat) {
+      continue;
+    }
+    
+    if ((point.lat < a.lat) !== (point.lat < b.lat) &&
+        (point.lon < b.lon + ((point.lat - a.lat) / (b.lat - a.lat)) * (b.lon - a.lon))) {
+      numCrosses++;
+    }
+  }
+  
+  return numCrosses % 2 !== 0;
+}
+
+/**
+ * Get the region info for a given lat/lon point, if it's in a special threshold region
+ */
+export function getShakemapRegion(lat: number, lon: number): PolygonRegion | null {
+  const point = { lat, lon };
+  
+  for (const exception of SHAKEMAP_THRESHOLD_EXCEPTIONS) {
+    if (pointInPolygon(point, exception.polygon)) {
+      return exception;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Check if event has shakemap based on magnitude threshold for its region.
+ * Returns true if magnitude meets or exceeds the threshold for the region the event is in.
+ */
+function hasShakemap(lat: number, lon: number, magnitude: number): boolean {
+  const point = { lat, lon };
+  
+  // Check if point is in any special threshold region
+  for (const exception of SHAKEMAP_THRESHOLD_EXCEPTIONS) {
+    if (pointInPolygon(point, exception.polygon)) {
+      return magnitude >= exception.threshold;
+    }
+  }
+  
+  // Use default threshold if not in any special region
+  return magnitude >= SHAKEMAP_DEFAULT_THRESHOLD;
+}
+
 // Converts to ISO-8601 UTC
 export function parseImplicitUTCToLocal(time: string): Date {
   // "2011-03-11 05:46:23" → "2011-03-11T05:46:23Z"
@@ -104,9 +215,20 @@ export function SMCDataURL(filters: EventFilters): string {
 
 export function CISNShakemapURL(event: Event): string {
   const id = event.id.slice(2); // remove us/ci/ce prefix
-  if (event.properties.state == "CA" && event.properties.country == "US") {
+  const lat = event.geometry.coordinates[1];
+  const lon = event.geometry.coordinates[0];
+  const mag = event.properties.mag ?? 0;
+  const state = event.properties.state;
+  
+  // If in California and meets regional threshold, use CISN shakemap
+  if (state === "CA" && hasShakemap(lat, lon, mag)) {
     return `https://www.cisn.org/shakemap/cgs_new/viewLeaflet.html?eventid=${id}`;
-  } else{
+  } 
+  // Otherwise if magnitude >= 3.5, use USGS shakemap
+  else if (mag >= 3.5) {
     return `https://earthquake.usgs.gov/earthquakes/eventpage/${event.id}/shakemap`;
   }
+  
+  // Return empty string if no shakemap available
+  return "";
 }
