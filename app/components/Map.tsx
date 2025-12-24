@@ -44,13 +44,21 @@ function ChangeView({ view, updateMapView }: { view: MapView, updateMapView: boo
 
   useEffect(() => {
     if (!map) return;
+    
+    // Check if map container exists and is connected to the DOM
     const container = map.getContainer();
     if (!container || !container.isConnected) return;
-    map.setView(view.center, view.zoom);
-
-    return () => {
-      console.log("ChangeView unmount");
-      // map.remove();
+    
+    // Additional check: ensure the map is properly initialized
+    // by verifying internal Leaflet structures exist
+    try {
+      // This will throw if map's internal state is corrupted
+      map.getCenter();
+      map.setView(view.center, view.zoom);
+    } catch (error) {
+      // Map is in an invalid state (common during hot reload)
+      // Silently ignore - the map will reinitialize on next render
+      console.warn("Map setView failed (likely due to hot reload):", error);
     }
   }, [updateMapView, map]);
 
@@ -121,6 +129,10 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   const [basemap, setBasemap] = useState<BasemapKey>('osm');
   const [showLegend, setShowLegend] = useState<boolean>(false);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
+  
+  // Track map instance ID to detect when we need to recreate the map
+  // This helps during hot reload situations
+  const [mapInstanceId] = useState(() => Math.random().toString(36).substring(7));
 
 
   useImperativeHandle(ref, () => ({
@@ -142,6 +154,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       smoothWheelZoom={true}
       smoothSensitivity={10}
       style={{ height: '100%', width: '100%' }}
+      key={mapInstanceId}
     >
       <ChangeView view={view} updateMapView={updateMapView} />
       <MapEvents onViewChange={onViewChange} />
