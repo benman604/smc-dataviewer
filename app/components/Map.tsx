@@ -20,6 +20,13 @@ export type MapBounds = {
   west: number;
 }
 
+export type Basemap = Record<string, {
+  name: string;
+  url: string;
+  attribution?: string;
+  overlay?: { url: string; attribution?: string } | null;
+}>;
+
 type MapProps = {
   view: MapView;
   children?: React.ReactNode;
@@ -36,7 +43,15 @@ function ChangeView({ view, updateMapView }: { view: MapView, updateMapView: boo
   const map = useMap();
 
   useEffect(() => {
+    if (!map) return;
+    const container = map.getContainer();
+    if (!container || !container.isConnected) return;
     map.setView(view.center, view.zoom);
+
+    return () => {
+      console.log("ChangeView unmount");
+      // map.remove();
+    }
   }, [updateMapView, map]);
 
   return null;
@@ -87,7 +102,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
   });
-  const basemaps: Record<string, { name: string; url: string; attribution?: string; overlay?: { url: string; attribution?: string } | null }> = {
+  const basemaps: Basemap = {
     osm: { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
     topo: { name: 'Topographic (OpenTopoMap)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap contributors' },
     sat:   { 

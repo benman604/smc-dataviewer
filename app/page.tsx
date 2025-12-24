@@ -1,13 +1,13 @@
 "use client";
 import dynamic from 'next/dynamic';
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
-import type { MapView } from "./components/Map";
 const EventMarker = dynamic(() => import('./components/EventMarker'), { ssr: false });
+import type { MapView } from "./components/Map";
 import FilterEvents from "./components/FilterEvents";
 import EventLegend from "./components/EventLegend";
-import { Filters } from "./components/FilterEvents";
+import { EventFilters } from "./components/FilterEvents";
 import { Event } from "./lib/definitions";
-import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal } from "./lib/util";
+import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCDataURL, CISNShakemapURL } from "./lib/util";
 import { useState, useEffect, useMemo } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -35,7 +35,7 @@ export default function Home() {
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
   const [listVisibleOnly, setListVisibleOnly] = useState<boolean>(false);
 
-  const getStartDate: () => Date = () => {
+  function getStartDate(): Date {
     const date = new Date(Date.now());
     switch (recency) {
       case "Day":
@@ -57,7 +57,7 @@ export default function Home() {
 
   const [startDate, setStartDate] = useState<Date>(getStartDate());
 
-  const defaultFilters: Filters = {
+  const defaultFilters: EventFilters = {
     startDate: startDate.toISOString().slice(0, 10),
     endDate: "",
     // empty array represents Any (no specific fault-type filter)
@@ -67,7 +67,7 @@ export default function Home() {
     magMax: null,
   }
 
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [filters, setFilters] = useState<EventFilters>(defaultFilters);
 
   function clearFilters() {
     setFilters({
@@ -76,34 +76,18 @@ export default function Home() {
     });
   }
 
-  function SMCDataURL(withFilters: boolean): string {
-    if (withFilters) {
-      const params = new URLSearchParams();
-      if (filters.startDate) params.append("startdate", filters.startDate);
-      if (filters.endDate) params.append("enddate", filters.endDate);
-      if (filters.evName) params.append("evname", filters.evName);
-      if (filters.faultTypes && filters.faultTypes.length > 0) {
-        params.append("faulttype", filters.faultTypes.join(","));
-      }
-      if (filters.magMin !== null && filters.magMin !== undefined) params.append("minmag", filters.magMin.toString());
-      if (filters.magMax !== null && filters.magMax !== undefined) params.append("maxmag", filters.magMax.toString());
-      params.append("orderby", "time");
-      params.append("format", "json");
-      params.append("nodata", "404");
-
-      return `https://www.strongmotioncenter.org/wserv/events/query?${params.toString()}`;
-    } else {
-      const startDate = getStartDate().toISOString().slice(0, 10); // YYYY-MM-DD
-      return `https://www.strongmotioncenter.org/wserv/events/query?startdate=${startDate}&orderby=time&format=json&nodata=404`;
-    }
-  }
-
   async function fetchEvents(withFilters: boolean = false) {
     setLoading(true);
     setError(null);
     try {
-      console.log(SMCDataURL(withFilters));
-      const response = await fetch(SMCDataURL(withFilters));
+      // console.log(SMCDataURL(withFilters));
+      const _filters = withFilters
+        ? filters
+        : {
+            ...defaultFilters,
+            startDate: getStartDate().toISOString().slice(0, 10),
+          };
+      const response = await fetch(SMCDataURL(_filters));
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
       const data = await response.json();
       console.log(data);
@@ -218,7 +202,7 @@ export default function Home() {
       // smooth scroll and center the item in the visible area
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [selectedEvent, listVisibleOnly, listVisibleOnly ? visibleEvents : null]); // depend on visibleEvents iff listVisibleOnly
+  }, [selectedEvent, listVisibleOnly, visibleEvents]);
 
   return (
     <div className="h-screen flex flex-col">
@@ -409,21 +393,24 @@ export default function Home() {
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <button
+                    <a
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="Interactive Map"
                     >
                       <span className="text-sm font-medium">Interactive Map</span>
                       <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
-                    </button>
+                    </a>
 
-                    <button
+                    <a
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="ShakeMap"
+                      href={CISNShakemapURL(selectedEvent)}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       <span className="text-sm font-medium">ShakeMap</span>
                       <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
-                    </button>
+                    </a>
                   </div>
                 </>
               )}

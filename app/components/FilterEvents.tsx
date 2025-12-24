@@ -4,7 +4,7 @@
 import { FaultType } from '../lib/definitions'
 import { useState } from 'react';
 
-export type Filters = {
+export type EventFilters = {
     startDate?: string; // YYYY-MM-DD
     endDate?: string;   // YYYY-MM-DD
     // empty array = Any (no specific fault type filter)
@@ -16,14 +16,14 @@ export type Filters = {
 }
 
 type FilterEventsProps = {
-    filters: Filters;
-    onChange: (next: Filters) => void;
+    filters: EventFilters;
+    onChange: (next: EventFilters) => void;
     onApply: () => void;
 }
 
 export default function FilterEvents({ filters, onChange, onApply }: FilterEventsProps) {
 
-    const update = (patch: Partial<Filters>) => {
+    const update = (patch: Partial<EventFilters>) => {
         onChange({ ...filters, ...patch });
     }
 
@@ -40,7 +40,7 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
     const [error, setError] = useState<string | null>(null);
 
     const validateAndApply = () => {
-        const { startDate, endDate, faultTypes, evName, magMin, magMax } = filters as Filters;
+        const { startDate, endDate, faultTypes, evName, magMin, magMax } = filters as EventFilters;
 
         // dates
         if (startDate && isNaN(Date.parse(startDate))) {
