@@ -6,6 +6,8 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMap, faCircleInfo, faTimes, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import "@luomus/leaflet-smooth-wheel-zoom";
 
 export type MapView = {
@@ -101,8 +103,31 @@ function MapInit({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
   return null;
 }
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMap, faCircleInfo, faTimes, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+// Guard component that checks if map is in a valid state before rendering children
+// This prevents errors during hot reload when Leaflet's internal state is corrupted
+// Uses synchronous check during render (not useEffect) to catch stale state
+function MapContentGuard({ children }: { children: React.ReactNode }) {
+  const map = useMap();
+  
+  // Synchronous validity check on every render
+  let isValid = false;
+  try {
+    if (map) {
+      const container = map.getContainer();
+      const tilePane = map.getPane('tilePane');
+      // Verify container is connected AND pane exists AND pane has parentNode
+      if (container && container.isConnected && tilePane && tilePane.parentNode) {
+        isValid = true;
+      }
+    }
+  } catch {
+    isValid = false;
+  }
+
+  if (!isValid) return null;
+  return <>{children}</>;
+}
+
 
 const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
@@ -126,13 +151,24 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   type BasemapKey = keyof typeof basemaps;
 
   const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [basemap, setBasemap] = useState<BasemapKey>('osm');
   const [showLegend, setShowLegend] = useState<boolean>(false);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
+  const base = basemaps[basemap];
   
-  // Track map instance ID to detect when we need to recreate the map
-  // This helps during hot reload situations
-  const [mapInstanceId] = useState(() => Math.random().toString(36).substring(7));
+  // Clear any stale Leaflet instance on the container during hot reload
+  // This fixes "Map container is being reused by another instance" error
+  useEffect(() => {
+    return () => {
+      const container = containerRef.current;
+      if (container) {
+        // Remove Leaflet's internal marker that tracks if a map is initialized on this element
+        // @ts-ignore - accessing internal Leaflet property
+        delete container._leaflet_id;
+      }
+    };
+  }, []);
 
 
   useImperativeHandle(ref, () => ({
@@ -146,6 +182,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   }), []);
 
   return (
+    <div ref={containerRef} style={{ height: '100%', width: '100%' }}>
     <MapContainer
       center={view.center}
       zoom={view.zoom}
@@ -154,17 +191,27 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       smoothWheelZoom={true}
       smoothSensitivity={10}
       style={{ height: '100%', width: '100%' }}
-      key={mapInstanceId}
     >
       <ChangeView view={view} updateMapView={updateMapView} />
       <MapEvents onViewChange={onViewChange} />
       <MapInit mapRef={mapRef} />
-      <TileLayer attribution={basemaps[basemap].attribution ?? ''} url={basemaps[basemap].url} key={"base-" + basemap} />
-      {basemaps[basemap].overlay && (
-        <TileLayer attribution={basemaps[basemap].overlay!.attribution ?? ''} url={basemaps[basemap].overlay!.url} key={"overlay-" + basemap} />
-      )}
+      <MapContentGuard>
+        {base && (
+          <TileLayer
+            attribution={base.attribution ?? ''}
+            url={base.url}
+          />
+        )}
 
-      {children}
+        {base?.overlay && (
+          <TileLayer
+            attribution={base.overlay.attribution ?? ''}
+            url={base.overlay.url}
+          />
+        )}
+
+        {children}
+      </MapContentGuard>
 
       {/* Floating controls (lower-left) */}
       <div className="absolute left-4 bottom-4 z-50 flex flex-col gap-2" style={{zIndex: 10000000}}>
@@ -194,7 +241,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <button
             className={`p-1 text-xl cursor-pointer text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
             title="Legend"
@@ -220,6 +267,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
 
       </div>
     </MapContainer>
+    </div>
   );
 });
 

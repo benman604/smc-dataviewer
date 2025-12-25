@@ -28,7 +28,7 @@ export default function Home() {
     center: [37.7749, -120.4194],
     zoom: 6,
   });
-  const [recency, setRecency] = useState<Recency>("Month");
+  const [recency, setRecency] = useState<Recency>("Week");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [orderBy, setOrderBy] = useState<OrderBy>({ field: "time", direction: "desc" });
@@ -348,7 +348,7 @@ export default function Home() {
           <section className="h-full min-h-0 relative">
             <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />}>
               {showPolygons && <ShakemapPolygons />}
-              {visibleEvents.map((event: Event, i) => (
+              {visibleEvents.toReversed().map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
               ))}
             </Map>
@@ -392,9 +392,13 @@ export default function Home() {
                         <span className="font-medium text-stone-700">Fault</span>
                       </span>
                     }
+
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                      {selectedEvent.id}
+                    </span>
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-wrap justify-center gap-2">
                     <a
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="Interactive Map"
@@ -403,16 +407,18 @@ export default function Home() {
                       <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
                     </a>
 
-                    <a
-                      className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
-                      title="ShakeMap"
-                      href={CISNShakemapURL(selectedEvent)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="text-sm font-medium">ShakeMap</span>
-                      <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
-                    </a> 
+                    {CISNShakemapURL(selectedEvent) && (
+                      <a
+                        className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
+                        title="ShakeMap"
+                        href={CISNShakemapURL(selectedEvent)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span className="text-sm font-medium">ShakeMap</span>
+                        <img src="/shakemap_icon.jpg" alt="ShakeMap icon" className="w-12 h-12 object-cover rounded" />
+                      </a>
+                    )}
                   </div>
                 </>
               )}
