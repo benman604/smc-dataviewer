@@ -232,3 +232,35 @@ export function CISNShakemapURL(event: Event): string {
   // Return empty string if no shakemap available
   return "";
 }
+
+export function SMCRecordsURL(eventId: string): string {
+  const params = new URLSearchParams();
+  params.append("eventid", eventId);
+  params.append("orderby", "epidist-asc");
+  params.append("rettype", "metadata");
+  params.append("format", "json");
+  params.append("groupby", "station");
+  params.append("nodata", "404");
+  
+  return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
+}
+
+// Color based on PGA value (in g)
+export function pgaToColor(pga: number): string {
+  // PGA values are typically in g (gravity)
+  // Using a scale similar to ShakeMap intensity colors
+  if (pga >= 0.34) return "#ff0000";      // red - very strong
+  if (pga >= 0.18) return "#ff6600";      // orange - strong  
+  if (pga >= 0.092) return "#ffcc00";     // yellow-orange - moderate
+  if (pga >= 0.039) return "#ffff00";     // yellow - light
+  if (pga >= 0.014) return "#b4ff00";     // yellow-green - weak
+  if (pga >= 0.003) return "#00ff00";     // green - very weak
+  return "#00ffff";                        // cyan - minimal
+}
+
+// Get max PGA from station's pgav1 and pgav2
+export function getMaxPGA(station: import('./definitions').Station): number {
+  const event = station.events[0];
+  if (!event?.record) return 0;
+  return Math.max(event.record.pgav1 || 0, event.record.pgav2 || 0);
+}

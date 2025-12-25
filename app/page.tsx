@@ -1,5 +1,6 @@
 "use client";
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 const Map = dynamic(() => import('./components/Map'), { ssr: false });
 const EventMarker = dynamic(() => import('./components/EventMarker'), { ssr: false });
 const ShakemapPolygons = dynamic(() => import('./components/ShakemapPolygons'), { ssr: false });
@@ -242,7 +243,7 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <p className="text-xs">Showing {events.length} earthquake{events.length !== 1 ? 's' : ''} {recency && `from the past ${recency.toLowerCase()}` }</p>
+                <p className="text-xs">Showing {visibleEvents.length} of {events.length} earthquake{events.length !== 1 ? 's' : ''}{recency ? ` from the past ${recency.toLowerCase()}` : ''}</p>
               )}
             </div>
 
@@ -399,13 +400,14 @@ export default function Home() {
                   </p>
 
                   <div className="flex flex-wrap justify-center gap-2">
-                    <a
+                    <Link
+                      href={`/records?evid=${selectedEvent.id}`}
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="Interactive Map"
                     >
                       <span className="text-sm font-medium">Interactive Map</span>
                       <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
-                    </a>
+                    </Link>
 
                     {CISNShakemapURL(selectedEvent) && (
                       <a
