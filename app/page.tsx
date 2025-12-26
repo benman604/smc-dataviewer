@@ -419,7 +419,7 @@ export default function Home() {
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
         <aside className="w-80 flex flex-col border-r border-stone-300">
           <div className="px-4 pt-4 pb-2 border-b border-b-stone-300">
-            <h2 className="font-large libre-baskerville font-bold">Internet Quick Report</h2>
+            <h2 className="font-large merriweather font-bold">Internet Quick Report</h2>
             {/* Loading / Error / Count */}
             <div className="mt-1">
               {loading ? (

@@ -21,7 +21,7 @@ body {
 /* Convenience classes to apply fonts directly in markup. Use these when you
    need to override the default font for a specific element. */
 .source-sans-3 { font-family: var(--font-source-sans-3) !important; }
-.libre-baskerville { font-family: var(--font-libre-baskerville) !important; }
+.merriweather { font-family: var(--font-merriweather), serif !important; }
 
 /* Simple inset gradient for a pressed/selected button. Keep subtle and neutral. */
 .inset-pressed {

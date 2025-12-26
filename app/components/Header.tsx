@@ -11,7 +11,7 @@ export default function Header() {
         <div className="leading-none">
           <span className="text-s">Strong Motion Center</span>
         </div>
-        <div className="leading-none libre-baskerville font-bold">
+        <div className="leading-none merriweather font-bold">
           <span className="text-xl">Data Viewer</span>
         </div>
       </div>

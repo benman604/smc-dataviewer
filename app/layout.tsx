@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville } from "next/font/google";
+import { Merriweather } from "next/font/google";
 import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
@@ -8,8 +8,8 @@ import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false
 
-const libreBaskerville = Libre_Baskerville({
-  variable: "--font-libre-baskerville",
+const merriweather = Merriweather({
+  variable: "--font-merriweather",
   subsets: ["latin"],
   weight: ["400", "700"],
 });
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${libreBaskerville.variable} ${sourceSans.variable} antialiased`}
+        className={`${merriweather.variable} ${sourceSans.variable} antialiased`}
       >
         <div className="h-screen flex flex-col">
           <Header />

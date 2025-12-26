@@ -219,7 +219,7 @@ function RecordsContent() {
     return (
       <div className="flex-1 flex items-center justify-center bg-stone-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold libre-baskerville mb-2">No Event Selected</h1>
+          <h1 className="text-2xl font-bold merriweather mb-2">No Event Selected</h1>
           <p className="text-stone-600 mb-4">Please select an event from the earthquakes page.</p>
           <Link href={backUrl} className="text-blue-600 hover:text-blue-800">
             <FontAwesomeIcon icon={faArrowLeft} className="mr-1" />
@@ -242,7 +242,7 @@ function RecordsContent() {
           
           {eventInfo && (
             <div className="mt-2">
-              <h2 className="font-large libre-baskerville font-bold">{eventInfo.title}</h2>
+              <h2 className="font-large merriweather font-bold">{eventInfo.title}</h2>
               <p className="text-xs text-stone-600">
                 M{eventInfo.mag} · {eventInfo.place}
               </p>
