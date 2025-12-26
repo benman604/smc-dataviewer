@@ -10,7 +10,8 @@ import EventLegend from "./components/EventLegend";
 import { EventFilters } from "./components/FilterEvents";
 import { Event } from "./lib/definitions";
 import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCDataURL, CISNShakemapURL, SHAKEMAP_THRESHOLD_EXCEPTIONS, getShakemapRegion, SHAKEMAP_DEFAULT_THRESHOLD } from "./lib/util";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
@@ -22,6 +23,9 @@ type OrderBy = {
 }
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const initialLoadRef = useRef(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [updateMapView, setUpdateMapView] = useState<boolean>(false);
@@ -79,17 +83,63 @@ export default function Home() {
     });
   }
 
+  // Helper to update URL without reload
+  const updateURL = useCallback((filtersToSync: EventFilters) => {
+    const params = new URLSearchParams();
+    if (filtersToSync.startDate) params.set('startDate', filtersToSync.startDate);
+    if (filtersToSync.endDate) params.set('endDate', filtersToSync.endDate);
+    if (filtersToSync.faultTypes && filtersToSync.faultTypes.length > 0) {
+      params.set('faultTypes', filtersToSync.faultTypes.join(','));
+    }
+    if (filtersToSync.evName) params.set('evName', filtersToSync.evName);
+    if (filtersToSync.magMin != null) params.set('magMin', String(filtersToSync.magMin));
+    if (filtersToSync.magMax != null) params.set('magMax', String(filtersToSync.magMax));
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, []);
+
+  // Helper to read filters from URL
+  const getFiltersFromURL = useCallback((): EventFilters | null => {
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const faultTypesStr = searchParams.get('faultTypes');
+    const evName = searchParams.get('evName');
+    const magMinStr = searchParams.get('magMin');
+    const magMaxStr = searchParams.get('magMax');
+    
+    // If no URL params, return null to use defaults
+    if (!startDate && !endDate && !faultTypesStr && !evName && !magMinStr && !magMaxStr) {
+      return null;
+    }
+    
+    return {
+      startDate: startDate || '',
+      endDate: endDate || '',
+      faultTypes: faultTypesStr ? faultTypesStr.split(',').filter(t => ['NM', 'RS', 'SS'].includes(t)) as any : [],
+      evName: evName || '',
+      magMin: magMinStr ? Number(magMinStr) : null,
+      magMax: magMaxStr ? Number(magMaxStr) : null,
+    };
+  }, [searchParams]);
+
   async function fetchEvents(withFilters: boolean = false) {
     setLoading(true);
     setError(null);
     try {
       // console.log(SMCDataURL(withFilters));
-      const _filters = withFilters
+      const _filters: EventFilters = withFilters
         ? filters
         : {
             ...defaultFilters,
             startDate: getStartDate().toISOString().slice(0, 10),
           };
+      
+      // Only update URL when user explicitly applies filters
+      if (withFilters) {
+        updateURL(_filters);
+      }
+      
       const response = await fetch(SMCDataURL(_filters));
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
       const data = await response.json();
@@ -153,24 +203,169 @@ export default function Home() {
       });
   }, [events, orderBy, view, listVisibleOnly]);
 
+  // Helper to apply URL filters
+  const applyUrlFilters = useCallback(() => {
+    const urlFilters = getFiltersFromURL();
+    
+    if (urlFilters) {
+      // URL has filters - apply them
+      setRecency(null); // Disable recency presets when using URL filters
+      setFilters(urlFilters);
+      // Fetch with URL filters
+      (async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fetch(SMCDataURL(urlFilters));
+          if (!response.ok) throw new Error(`Server returned ${response.status}`);
+          const data = await response.json();
+          setEvents(data.features || []);
+          if (data.bbox) {
+            const { center, zoom } = bboxToCenterZoom(data.bbox);
+            setView({ center: [center.lat, center.lon], zoom });
+            setUpdateMapView((v) => !v);
+          }
+        } catch (err: any) {
+          console.error(err);
+          setEvents([]);
+          setError(err?.message ?? "Failed to fetch events");
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return true;
+    }
+    return false;
+  }, [getFiltersFromURL]);
+
+  // Watch for URL param changes (including when navigating back via Link)
+  // Use searchParams.toString() as dependency to ensure it triggers on client navigation
+  const searchParamsString = searchParams.toString();
+  
   useEffect(() => {
-    if (recency == null) return;
-    // compute startDate from the current recency now (avoid relying on startDate state which updates async)
-    const computedStart = getStartDate();
+    if (!applyUrlFilters() && initialLoadRef.current) {
+      // No URL filters and first load - use default behavior
+      initialLoadRef.current = false;
+      fetchEvents();
+    }
+  }, [searchParamsString]);
+
+  // Listen for popstate (browser back/forward) to handle URL changes
+  useEffect(() => {
+    const handlePopState = () => {
+      // Re-read URL and apply filters
+      const params = new URLSearchParams(window.location.search);
+      const startDate = params.get('startDate');
+      const endDate = params.get('endDate');
+      const faultTypesStr = params.get('faultTypes');
+      const evName = params.get('evName');
+      const magMinStr = params.get('magMin');
+      const magMaxStr = params.get('magMax');
+      
+      if (startDate || endDate || faultTypesStr || evName || magMinStr || magMaxStr) {
+        const urlFilters: EventFilters = {
+          startDate: startDate || '',
+          endDate: endDate || '',
+          faultTypes: faultTypesStr ? faultTypesStr.split(',').filter(t => ['NM', 'RS', 'SS'].includes(t)) as any : [],
+          evName: evName || '',
+          magMin: magMinStr ? Number(magMinStr) : null,
+          magMax: magMaxStr ? Number(magMaxStr) : null,
+        };
+        setRecency(null);
+        setFilters(urlFilters);
+        // Fetch
+        (async () => {
+          setLoading(true);
+          setError(null);
+          try {
+            const response = await fetch(SMCDataURL(urlFilters));
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
+            const data = await response.json();
+            setEvents(data.features || []);
+            if (data.bbox) {
+              const { center, zoom } = bboxToCenterZoom(data.bbox);
+              setView({ center: [center.lat, center.lon], zoom });
+              setUpdateMapView((v) => !v);
+            }
+          } catch (err: any) {
+            console.error(err);
+            setEvents([]);
+            setError(err?.message ?? "Failed to fetch events");
+          } finally {
+            setLoading(false);
+          }
+        })();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Handler for recency button clicks - directly fetches instead of relying on effects
+  function handleRecencyClick(r: Recency) {
+    if (r == null) return;
+    
+    setRecency(r);
+    
+    // Compute the start date for this recency
+    const date = new Date(Date.now());
+    switch (r) {
+      case "Day":
+        date.setDate(date.getDate() - 1);
+        break;
+      case "Week":
+        date.setDate(date.getDate() - 7);
+        break;
+      case "Month":
+        date.setMonth(date.getMonth() - 1);
+        break;
+      case "Year":
+        date.setFullYear(date.getFullYear() - 1);
+        break;
+    }
+    
+    const computedStart = date;
     setEvents([]);
     closeSelectedEvent();
-    // update startDate state and reset filters using the freshly computed date so the default doesn't lag
     setStartDate(computedStart);
-    setFilters({
+    
+    const newFilters = {
       startDate: computedStart.toISOString().slice(0, 10),
       endDate: "",
-      faultTypes: [],
+      faultTypes: [] as any,
       evName: "",
       magMin: null,
       magMax: null,
-    });
-    fetchEvents();
-  }, [recency]);
+    };
+    setFilters(newFilters);
+    
+    // Clear URL params when using recency buttons
+    window.history.replaceState({}, '', window.location.pathname);
+    
+    // Fetch immediately with computed filters
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(SMCDataURL(newFilters));
+        if (!response.ok) throw new Error(`Server returned ${response.status}`);
+        const data = await response.json();
+        setEvents(data.features || []);
+        if (data.bbox) {
+          const { center, zoom } = bboxToCenterZoom(data.bbox);
+          setView({ center: [center.lat, center.lon], zoom });
+          setUpdateMapView((v) => !v);
+        }
+      } catch (err: any) {
+        console.error(err);
+        setEvents([]);
+        setError(err?.message ?? "Failed to fetch events");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }
 
   // keep panelOpen in sync with selectedEvent
   useEffect(() => {
@@ -253,7 +448,7 @@ export default function Home() {
                   <button
                     key={r}
                     className={`rounded w-full py-2 text-sm hover:cursor-pointer ${recency === r ? 'bg-purple-600 text-white' : 'bg-stone-200 hover:bg-stone-300'}`}
-                    onClick={() => setRecency(r)}
+                    onClick={() => handleRecencyClick(r)}
                   >
                     {r}
                   </button>
@@ -401,7 +596,7 @@ export default function Home() {
 
                   <div className="flex flex-wrap justify-center gap-2">
                     <Link
-                      href={`/records?evid=${selectedEvent.id}`}
+                      href={`/records?evid=${selectedEvent.id}${window.location.search ? '&from=' + encodeURIComponent(window.location.search) : ''}`}
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="Interactive Map"
                     >

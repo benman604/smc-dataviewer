@@ -66,7 +66,7 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
             setError('Fault types invalid');
             return;
         }
-        const allowed = new Set(['NM', 'RV', 'SS']);
+        const allowed = new Set(['NM', 'RS', 'SS']);
         for (const t of ft) {
             if (!allowed.has(t)) {
                 setError('Fault types contain invalid value');
@@ -139,8 +139,8 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
                     <input
                         type="checkbox"
                         name="reverse"
-                        checked={(filters.faultTypes || []).includes("RV")}
-                        onChange={(e) => toggleFaultType("RV", e.target.checked)}
+                        checked={(filters.faultTypes || []).includes("RS")}
+                        onChange={(e) => toggleFaultType("RS", e.target.checked)}
                     />
                     <span>Reverse</span>
                 </label>

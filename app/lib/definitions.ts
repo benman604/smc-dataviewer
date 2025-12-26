@@ -1,4 +1,4 @@
-export type FaultType = 'NM' | 'RV' | 'SS';
+export type FaultType = 'NM' | 'RS' | 'SS';
 
 export type Event = {
 	cesmd_id: string;

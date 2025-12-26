@@ -62,7 +62,7 @@ export function faultIdToName(faultId: FaultType): string {
     switch (faultId) {
         case 'NM':
             return 'Normal';
-        case 'RV':
+        case 'RS':
             return 'Reverse';
         case 'SS':
             return 'Strike-Slip';

@@ -23,6 +23,8 @@ type OrderBy = {
 function RecordsContent() {
   const searchParams = useSearchParams();
   const evid = searchParams.get('evid');
+  const fromParams = searchParams.get('from'); // Original earthquakes page URL params
+  const backUrl = fromParams ? `/${fromParams}` : '/';
 
   const [stations, setStations] = useState<Station[]>([]);
   const [eventInfo, setEventInfo] = useState<Station['events'][0] | null>(null);
@@ -219,7 +221,7 @@ function RecordsContent() {
         <div className="text-center">
           <h1 className="text-2xl font-bold libre-baskerville mb-2">No Event Selected</h1>
           <p className="text-stone-600 mb-4">Please select an event from the earthquakes page.</p>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
+          <Link href={backUrl} className="text-blue-600 hover:text-blue-800">
             <FontAwesomeIcon icon={faArrowLeft} className="mr-1" />
             Back to Earthquakes
           </Link>
@@ -233,7 +235,7 @@ function RecordsContent() {
       <aside className="w-80 flex flex-col border-r border-stone-300">
         <div className="px-4 pt-4 pb-2 border-b border-b-stone-300">
           {/* Back link and event info */}
-          <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm">
+          <Link href={backUrl} className="text-blue-600 hover:text-blue-800 text-sm">
             <FontAwesomeIcon icon={faArrowLeft} className="mr-1" />
             Back to Earthquakes
           </Link>
