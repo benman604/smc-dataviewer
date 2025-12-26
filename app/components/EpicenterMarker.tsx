@@ -11,22 +11,58 @@ type EpicenterMarkerProps = {
 
 export default function EpicenterMarker({ latitude, longitude, depth, magnitude }: EpicenterMarkerProps) {
     const markerRef = useRef<L.Marker | null>(null);
-    const size = 16;
+    const dotSize = 20;
+    const pulseSize = 70;
 
     const icon = L.divIcon({
         className: '',
         html: `
         <div style="
-            width: ${size}px;
-            height: ${size}px;
-            background-color: #cc0000;
-            border: 3px solid #800000;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-        "></div>
+            position: relative;
+            width: ${pulseSize}px;
+            height: ${pulseSize}px;
+        ">
+            <!-- Pulsating ring -->
+            <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${dotSize}px;
+                height: ${dotSize}px;
+                background-color: rgba(220, 38, 38, 1);
+                border-radius: 50%;
+                animation: pulse 1.5s ease-out infinite;
+            "></div>
+            <!-- Center dot -->
+            <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: ${dotSize}px;
+                height: ${dotSize}px;
+                background-color: #dc2626;
+                border: 5px solid #fff;
+                border-radius: 50%;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            "></div>
+        </div>
+        <style>
+            @keyframes pulse {
+                0% {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 0.8;
+                }
+                100% {
+                    transform: translate(-50%, -50%) scale(3);
+                    opacity: 0;
+                }
+            }
+        </style>
         `,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2]
+        iconSize: [pulseSize, pulseSize],
+        iconAnchor: [pulseSize / 2, pulseSize / 2]
     });
 
     // Ensure epicenter is always on top
