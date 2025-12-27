@@ -246,6 +246,54 @@ export function SMCRecordsURL(eventId: string): string {
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }
 
+import { StationFilters, DEFAULT_NETWORKS } from '../components/FilterStations';
+
+// Station type code mapping for API
+const STATION_TYPE_CODES: Record<string, string> = {
+  'Array': 'A',
+  'Ground': 'G',
+  'Building': 'B',
+  'Bridge': 'Br',
+  'Dam': 'D',
+  'Tunnel': 'T',
+  'Wharf': 'W',
+  'Other': 'O',
+};
+
+export function SMCStationsURL(filters: StationFilters): string {
+  const params = new URLSearchParams();
+  
+  // Networks
+  const networks = filters.networks === 'default' ? DEFAULT_NETWORKS : filters.networks;
+  params.append("netid", networks.join(","));
+  
+  // Station type (single value)
+  if (filters.stationTypes !== 'any') {
+    const typeCode = STATION_TYPE_CODES[filters.stationTypes];
+    if (typeCode) params.append("sttype", typeCode);
+  }
+  
+  // Station name (wildcard search)
+  if (filters.stationName) {
+    params.append("stname", `*${filters.stationName}*`);
+  }
+  
+  // Station code
+  if (filters.stcode) {
+    params.append("stcode", filters.stcode);
+  }
+  
+  // Abandoned
+  if (filters.abandoned) {
+    params.append("abandoned", "true");
+  }
+  
+  params.append("format", "json");
+  params.append("nodata", "404");
+  
+  return `https://www.strongmotioncenter.org/wserv/stations/query?${params.toString()}`;
+}
+
 // Color based on PGA value (in g)
 export function pgaToColor(pga: number): string {
   // PGA values are typically in g (gravity)
@@ -260,7 +308,7 @@ export function pgaToColor(pga: number): string {
 }
 
 // Get max PGA from station's pgav1 and pgav2
-export function getMaxPGA(station: import('./definitions').Station): number {
+export function getMaxPGA(station: import('./definitions').RecordStation): number {
   const event = station.events[0];
   if (!event?.record) return 0;
   return Math.max(event.record.pgav1 || 0, event.record.pgav2 || 0);

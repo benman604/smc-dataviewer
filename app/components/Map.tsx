@@ -35,13 +35,14 @@ type MapProps = {
   onViewChange?: (view: MapView) => void;
   updateMapView: boolean;
   legend?: React.ReactNode;
+  animateView?: boolean;
 }
 
 export type MapHandle = {
   setPos: (center: [number, number], animate?: boolean) => void;
 }
 
-function ChangeView({ view, updateMapView }: { view: MapView, updateMapView: boolean }) {
+function ChangeView({ view, updateMapView, animate = true }: { view: MapView, updateMapView: boolean, animate?: boolean }) {
   const map = useMap();
 
   useEffect(() => {
@@ -56,7 +57,7 @@ function ChangeView({ view, updateMapView }: { view: MapView, updateMapView: boo
     try {
       // This will throw if map's internal state is corrupted
       map.getCenter();
-      map.setView(view.center, view.zoom);
+      map.setView(view.center, view.zoom, { animate });
     } catch (error) {
       // Map is in an invalid state (common during hot reload)
       // Silently ignore - the map will reinitialize on next render
@@ -129,7 +130,7 @@ function MapContentGuard({ children }: { children: React.ReactNode }) {
 }
 
 
-const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend }: MapProps, ref) {
+const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend, animateView = true }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
@@ -192,7 +193,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       smoothSensitivity={10}
       style={{ height: '100%', width: '100%' }}
     >
-      <ChangeView view={view} updateMapView={updateMapView} />
+      <ChangeView view={view} updateMapView={updateMapView} animate={animateView} />
       <MapEvents onViewChange={onViewChange} />
       <MapInit mapRef={mapRef} />
       <MapContentGuard>

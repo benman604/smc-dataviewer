@@ -8,7 +8,7 @@ const EpicenterMarker = dynamic(() => import('../components/EpicenterMarker'), {
 import type { MapView } from "../components/Map";
 import FilterRecords, { RecordFilters } from "../components/FilterRecords";
 import RecordLegend from "../components/RecordLegend";
-import { Station, RecordsResponse } from "../lib/definitions";
+import { RecordStation, RecordsResponse } from "../lib/definitions";
 import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";
 
@@ -26,9 +26,9 @@ function RecordsContent() {
   const fromParams = searchParams.get('from'); // Original earthquakes page URL params
   const backUrl = fromParams ? `/${fromParams}` : '/';
 
-  const [stations, setStations] = useState<Station[]>([]);
-  const [eventInfo, setEventInfo] = useState<Station['events'][0] | null>(null);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+  const [stations, setStations] = useState<RecordStation[]>([]);
+  const [eventInfo, setEventInfo] = useState<RecordStation['events'][0] | null>(null);
+  const [selectedStation, setSelectedStation] = useState<RecordStation | null>(null);
   const [updateMapView, setUpdateMapView] = useState<boolean>(false);
   const [view, setView] = useState<MapView>({
     center: [37.7749, -120.4194],
@@ -103,7 +103,7 @@ function RecordsContent() {
   }
 
   const visibleStations = useMemo(() => {
-    let filtered = stations.filter((station: Station) => {
+    let filtered = stations.filter((station: RecordStation) => {
       // Filter by station type
       if (filters.stationTypes !== 'any') {
         if (!filters.stationTypes.includes(station.type as any)) {
@@ -154,7 +154,7 @@ function RecordsContent() {
       return true;
     });
 
-    return filtered.sort((a: Station, b: Station) => {
+    return filtered.sort((a: RecordStation, b: RecordStation) => {
       const recordA = a.events[0]?.record;
       const recordB = b.events[0]?.record;
       if (!recordA || !recordB) return 0;
@@ -324,7 +324,7 @@ function RecordsContent() {
         </div>
 
         <div className="flex-1 overflow-auto p-0 m-0" role="list">
-          {visibleStations.map((station: Station, i) => {
+          {visibleStations.map((station: RecordStation, i) => {
             const record = station.events[0]?.record;
             const pga = getMaxPGA(station);
             
@@ -363,7 +363,7 @@ function RecordsContent() {
       <main className="flex-1 min-h-0">
         <section className="h-full min-h-0 relative">
           <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<RecordLegend />}>
-            {visibleStations.map((station: Station) => (
+            {visibleStations.map((station: RecordStation) => (
               <StationMarker 
                 key={station.code} 
                 station={station} 

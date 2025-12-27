@@ -1,18 +1,30 @@
-import { Station } from "../lib/definitions";
+import { BaseStation, RecordStation } from "../lib/definitions";
 import { pgaToColor, getMaxPGA } from "../lib/util";
 import { Marker } from 'react-leaflet'
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 
 type StationMarkerProps = {
-    station: Station;
+    station: BaseStation;
     onSelect?: () => void;
     isSelected?: boolean;
+    fillColor?: string; // Optional override for fill color
 };
 
-export default function StationMarker({ station, onSelect, isSelected = false }: StationMarkerProps) {
+// Helper to check if station has record data
+function hasRecordData(station: BaseStation): station is RecordStation {
+    return 'events' in station && Array.isArray((station as RecordStation).events);
+}
+
+export default function StationMarker({ station, onSelect, isSelected = false, fillColor }: StationMarkerProps) {
     const markerRef = useRef<L.Marker | null>(null);
-    const pga = getMaxPGA(station);
+    
+    // If no fillColor provided and station has record data, use PGA color
+    // Otherwise use a default gray
+    const computedFillColor = fillColor ?? (
+        hasRecordData(station) ? pgaToColor(getMaxPGA(station)) : '#888888'
+    );
+    
     const size = 12;
     const strokeWidth = isSelected ? 3 : 1;
     const iconShape = station.status !== 'Active' ? 'diamond' : 
@@ -20,21 +32,19 @@ export default function StationMarker({ station, onSelect, isSelected = false }:
         station.type == "Building" ? 'square' : 'triangle';
 
     const getShapeSVG = () => {
-        const fillColor = pgaToColor(pga);
-        
         switch (iconShape) {
             case 'circle':
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <circle cx="${(size + 4) / 2}" cy="${(size + 4) / 2}" r="${size / 2}" 
-                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'square':
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <rect x="2" y="2" width="${size}" height="${size}" 
-                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'diamond':
@@ -43,7 +53,7 @@ export default function StationMarker({ station, onSelect, isSelected = false }:
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <polygon points="${diamondCenter},${diamondCenter - diamondHalf} ${diamondCenter + diamondHalf},${diamondCenter} ${diamondCenter},${diamondCenter + diamondHalf} ${diamondCenter - diamondHalf},${diamondCenter}" 
-                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'triangle':
@@ -54,14 +64,14 @@ export default function StationMarker({ station, onSelect, isSelected = false }:
                 return `
                     <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
                         <polygon points="${svgWidth / 2},2 ${svgWidth - 2},${svgHeight - 2} 2,${svgHeight - 2}" 
-                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             default:
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <rect x="2" y="2" width="${size}" height="${size}" 
-                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
         }
