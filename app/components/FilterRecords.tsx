@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 
+const STATION_TYPES = ['Array', 'Ground', 'Building', 'Bridge', 'Dam', 'Tunnel', 'Wharf', 'Other'] as const;
+export type StationType = typeof STATION_TYPES[number];
+
 export type RecordFilters = {
     stationName: string;
     pgaMin: number | null;
@@ -10,6 +13,7 @@ export type RecordFilters = {
     pgvMax: number | null;
     sa1Min: number | null;
     sa1Max: number | null;
+    stationTypes: StationType[] | 'any';
 }
 
 type FilterRecordsProps = {
@@ -26,7 +30,38 @@ export default function FilterRecords({ filters, onChange }: FilterRecordsProps)
 
     return (
         <div className="mt-3 p-2 border border-stone-300 bg-stone-50">
-            <p className="text-xs text-stone-600">Station Name:</p>
+            <p className="text-xs text-stone-600">Station Type:</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 my-1">
+                <label className="flex items-center gap-1 text-xs">
+                    <input
+                        type="checkbox"
+                        checked={filters.stationTypes === 'any'}
+                        onChange={() => update({ stationTypes: 'any' })}
+                    />
+                    Any
+                </label>
+                {STATION_TYPES.map((type) => (
+                    <label key={type} className="flex items-center gap-1 text-xs">
+                        <input
+                            type="checkbox"
+                            checked={filters.stationTypes !== 'any' && filters.stationTypes.includes(type)}
+                            onChange={(e) => {
+                                if (e.target.checked) {
+                                    const current = filters.stationTypes === 'any' ? [] : filters.stationTypes;
+                                    update({ stationTypes: [...current, type] });
+                                } else {
+                                    const current = filters.stationTypes === 'any' ? [] : filters.stationTypes;
+                                    const next = current.filter(t => t !== type);
+                                    update({ stationTypes: next.length === 0 ? 'any' : next });
+                                }
+                            }}
+                        />
+                        {type}
+                    </label>
+                ))}
+            </div>
+
+            <p className="text-xs text-stone-600 mt-2">Station Name:</p>
             <input
                 type="text"
                 placeholder="Search by name or code..."

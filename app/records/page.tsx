@@ -9,7 +9,7 @@ import type { MapView } from "../components/Map";
 import FilterRecords, { RecordFilters } from "../components/FilterRecords";
 import RecordLegend from "../components/RecordLegend";
 import { Station, RecordsResponse } from "../lib/definitions";
-import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom } from "../lib/util";
+import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -49,6 +49,7 @@ function RecordsContent() {
     pgvMax: null,
     sa1Min: null,
     sa1Max: null,
+    stationTypes: 'any',
   }
 
   const [filters, setFilters] = useState<RecordFilters>(defaultFilters);
@@ -103,6 +104,13 @@ function RecordsContent() {
 
   const visibleStations = useMemo(() => {
     let filtered = stations.filter((station: Station) => {
+      // Filter by station type
+      if (filters.stationTypes !== 'any') {
+        if (!filters.stationTypes.includes(station.type as any)) {
+          return false;
+        }
+      }
+
       // Filter by name/code
       if (filters.stationName) {
         const search = filters.stationName.toLowerCase();
@@ -244,7 +252,9 @@ function RecordsContent() {
             <div className="mt-2">
               <h2 className="font-large merriweather font-bold">{eventInfo.title}</h2>
               <p className="text-xs text-stone-600">
-                M{eventInfo.mag} · {eventInfo.place}
+                M{eventInfo.mag} · {eventInfo.place} <br/>
+                {parseImplicitUTCToLocal(eventInfo.time).toLocaleString()} <br />
+                Lat: {eventInfo.latitude.toFixed(4)} Lon: {eventInfo.longitude.toFixed(4)} Depth: {eventInfo.depth} km
               </p>
             </div>
           )}
@@ -384,22 +394,42 @@ function RecordsContent() {
             {selectedStation && (
               <>
                 <h2 className="font-bold">{selectedStation.code} - {selectedStation.name}</h2>
-                <p className="text-sm text-stone-600">{selectedStation.network} · {selectedStation.type}</p>
                 
                 <p className="mt-2 flex flex-wrap gap-2 text-sm text-stone-600">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                    <span className="font-medium text-stone-700">Lat</span>
-                    {selectedStation.latitude.toFixed(4)}
-                    <span className="font-medium text-stone-700">Lon</span>
-                    {selectedStation.longitude.toFixed(4)}
-                  </span>
-
-                  {selectedStation.elevation && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
-                      <span className="font-medium text-stone-700">Elev</span>
-                      {selectedStation.elevation} m
+                      {selectedStation.network}
                     </span>
-                  )}
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                        <span className="font-medium text-stone-700">Lat</span>
+                        {selectedStation.latitude.toFixed(4)}
+                        <span className="font-medium text-stone-700">Lon</span>
+                        {selectedStation.longitude.toFixed(4)}
+                    </span>
+
+                    {selectedStation.elevation && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                        <span className="font-medium text-stone-700">Elev</span>
+                        {selectedStation.elevation} m
+                        </span>
+                    )}
+
+                    {selectedStation.type && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                            {selectedStation.type}
+                        </span>
+                    )}
+
+                    {selectedStation.siteclass && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                            Site class {selectedStation.siteclass}
+                        </span>
+                    )}
+
+                    {selectedStation.status && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
+                            {selectedStation.status}
+                        </span>
+                    )}
                 </p>
 
                 {selectedStation.events[0]?.record && (

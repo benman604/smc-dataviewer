@@ -241,7 +241,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <button
             className={`p-1 text-xl cursor-pointer text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
             title="Legend"

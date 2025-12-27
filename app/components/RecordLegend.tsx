@@ -48,6 +48,35 @@ export default function RecordLegend({ onClose }: RecordLegendProps) {
           ))}
         </div>
       </div>
+      <div className="mt-3">
+        <div className="font-semibold text-xs">Station Type (shape)</div>
+        <div className="mt-1 space-y-1">
+          <div className="flex items-center gap-2 text-xs">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="6" fill="#999" stroke="black" strokeWidth="1.5"/>
+            </svg>
+            <div>Ground</div>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <rect x="2" y="2" width="12" height="12" fill="#999" stroke="black" strokeWidth="1.5"/>
+            </svg>
+            <div>Building</div>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <polygon points="8,2 14,14 2,14" fill="#999" stroke="black" strokeWidth="1.5"/>
+            </svg>
+            <div>Other</div>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <polygon points="8,2 14,8 8,14 2,8" fill="#999" stroke="black" strokeWidth="1.5"/>
+            </svg>
+            <div>Abandoned</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

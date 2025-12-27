@@ -240,6 +240,7 @@ export function SMCRecordsURL(eventId: string): string {
   params.append("rettype", "metadata");
   params.append("format", "json");
   params.append("groupby", "station");
+  params.append("abandoned", "true");
   params.append("nodata", "404");
   
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;

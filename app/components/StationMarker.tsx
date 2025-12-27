@@ -13,31 +13,66 @@ type StationMarkerProps = {
 export default function StationMarker({ station, onSelect, isSelected = false }: StationMarkerProps) {
     const markerRef = useRef<L.Marker | null>(null);
     const pga = getMaxPGA(station);
-    const diameter = 24;
+    const size = 12;
+    const strokeWidth = isSelected ? 3 : 1;
+    const iconShape = station.status !== 'Active' ? 'diamond' : 
+        station.type == "Ground" ? 'circle' :
+        station.type == "Building" ? 'square' : 'triangle';
 
+    const getShapeSVG = () => {
+        const fillColor = pgaToColor(pga);
+        
+        switch (iconShape) {
+            case 'circle':
+                return `
+                    <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
+                        <circle cx="${(size + 4) / 2}" cy="${(size + 4) / 2}" r="${size / 2}" 
+                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                    </svg>
+                `;
+            case 'square':
+                return `
+                    <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
+                        <rect x="2" y="2" width="${size}" height="${size}" 
+                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                    </svg>
+                `;
+            case 'diamond':
+                const diamondCenter = (size + 4) / 2;
+                const diamondHalf = size / 2;
+                return `
+                    <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
+                        <polygon points="${diamondCenter},${diamondCenter - diamondHalf} ${diamondCenter + diamondHalf},${diamondCenter} ${diamondCenter},${diamondCenter + diamondHalf} ${diamondCenter - diamondHalf},${diamondCenter}" 
+                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                    </svg>
+                `;
+            case 'triangle':
+                const triWidth = size;
+                const triHeight = size;
+                const svgWidth = triWidth + 4;
+                const svgHeight = triHeight + 4;
+                return `
+                    <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+                        <polygon points="${svgWidth / 2},2 ${svgWidth - 2},${svgHeight - 2} 2,${svgHeight - 2}" 
+                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                    </svg>
+                `;
+            default:
+                return `
+                    <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
+                        <rect x="2" y="2" width="${size}" height="${size}" 
+                            fill="${fillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                    </svg>
+                `;
+        }
+    };
+
+    const iconSize = size + 4;
     const icon = L.divIcon({
         className: '',
-        html: `
-        <div class="station-icon" style="
-            width:${diameter}px;
-            height:${diameter}px;
-            line-height:${diameter}px;
-            background-color: ${pgaToColor(pga)};
-            outline: ${isSelected ? 4 : 1}px solid black;
-            text-align: center;
-            font-weight: bold;
-            font-size: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-source-sans-3), sans-serif;
-            user-select: none;
-        ">
-            ${station.code}
-        </div>
-        `,
-        iconSize: [diameter, diameter],
-        iconAnchor: [diameter / 2, diameter / 2]
+        html: getShapeSVG(),
+        iconSize: [iconSize, iconSize],
+        iconAnchor: [iconSize / 2, iconSize / 2]
     });
 
     useEffect(() => {

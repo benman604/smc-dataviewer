@@ -595,14 +595,17 @@ export default function Home() {
                   </p>
 
                   <div className="flex flex-wrap justify-center gap-2">
-                    <Link
-                      href={`/records?evid=${selectedEvent.id}${window.location.search ? '&from=' + encodeURIComponent(window.location.search) : ''}`}
-                      className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
-                      title="Interactive Map"
-                    >
-                      <span className="text-sm font-medium">Interactive Map</span>
-                      <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
-                    </Link>
+
+                    {selectedEvent.properties.RecordNum > 0 && (
+                      <Link
+                        href={`/records?evid=${selectedEvent.id}${window.location.search ? '&from=' + encodeURIComponent(window.location.search) : ''}`}
+                        className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
+                        title="Interactive Map"
+                      >
+                        <span className="text-sm font-medium">Interactive Map</span>
+                        <img src="/iqr_map_icon.jpg" alt="Interactive map icon" className="w-12 h-12 object-cover rounded" />
+                      </Link>
+                    )}
 
                     {CISNShakemapURL(selectedEvent) && (
                       <a
