@@ -8,7 +8,7 @@ import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/
 import StationLegend from "../components/StationLegend";
 import { StationFeature, StationsResponse, BaseStation } from "../lib/definitions";
 import { SMCStationsURL, bboxToCenterZoom } from "../lib/util";
-import { useState, useEffect, useMemo, Suspense, useRef } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
@@ -104,7 +104,6 @@ function StationsContent() {
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const isInitialFetchRef = useRef<boolean>(true);
 
   const defaultFilters: StationFilters = {
     stationName: "",
@@ -123,7 +122,7 @@ function StationsContent() {
     setFilters({ ...defaultFilters });
   }
 
-  async function fetchStations() {
+  async function fetchStations(autoZoom: boolean = false) {
     setLoading(true);
     setError(null);
     try {
@@ -137,11 +136,8 @@ function StationsContent() {
       setStations(stationList);
       setTotalCount(data.metadata?.count?.total || stationList.length);
 
-      // Auto-zoom to fit stations, except on initial fetch
-      const shouldAutoZoom = !isInitialFetchRef.current;
-      isInitialFetchRef.current = false;
-      
-      if (stationList.length > 0 && shouldAutoZoom) {
+      // Auto-zoom to fit stations only when explicitly requested (e.g., after applying filters)
+      if (stationList.length > 0 && autoZoom) {
         const lats = stationList.map(s => s.latitude);
         const lons = stationList.map(s => s.longitude);
         const minLat = Math.min(...lats);
@@ -262,7 +258,6 @@ function StationsContent() {
     setView({
       center: newCenter,
       zoom: newZoom,
-      bounds: newBounds,
     });
     setUpdateMapView(!updateMapView);
   }, [selectedStation]);
@@ -315,7 +310,7 @@ function StationsContent() {
             <FilterStations 
               filters={filters} 
               onChange={setFilters} 
-              onSubmit={fetchStations}
+              onSubmit={() => fetchStations(true)}
             />
           </div>
 
@@ -412,7 +407,7 @@ function StationsContent() {
           )}
           
           {/* Floating panel (animated) */}
-          <div className={`absolute top-4 right-4 w-96 max-h-[calc(100%-2rem)] overflow-y-auto p-4 bg-white border border-stone-300 transform transition-all duration-300 ease-in-out ${panelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`} style={{ zIndex: 100000 }} aria-hidden={!panelOpen}>
+          <div className={`absolute top-4 right-4 w-80 max-h-[calc(100%-2rem)] overflow-y-auto p-4 bg-white border border-stone-300 transform transition-all duration-300 ease-in-out ${panelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`} style={{ zIndex: 100000 }} aria-hidden={!panelOpen}>
             <button
               className="flex items-center justify-center pt-0 mt-0 mb-2 text-blue-500 hover:text-blue-700 hover:cursor-pointer"
               onClick={() => closeSelectedStation()}
@@ -532,12 +527,12 @@ function StationsContent() {
                     </div>
                   )}
 
-                  <div className="mt-3 flex flex-col gap-2">
+                  <div className="mt-3 flex gap-2">
                     <Link
                       href={`/stations/records?stcode=${selectedStation.network}${selectedStation.code}`}
-                      className="block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                      className="flex-1 text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
                     >
-                      View Earthquake Records
+                      Records
                     </Link>
                     
                     {selectedStation.stationpage && (
@@ -545,9 +540,9 @@ function StationsContent() {
                         href={selectedStation.stationpage}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block w-full text-center py-2 bg-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-300"
+                        className="flex-1 text-center py-2 bg-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-300"
                       >
-                        View Station Page
+                        Station Page
                       </a>
                     )}
                   </div>

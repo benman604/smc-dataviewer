@@ -394,7 +394,13 @@ function RecordsContent() {
             {selectedStation && (
               <>
                 <h2 className="font-bold">{selectedStation.code} - {selectedStation.name}</h2>
-                
+                <Link
+                  href={`/stations/records?stcode=${selectedStation.network}${selectedStation.code}`}
+                  className="mt-2 block text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Other events recorded by this station
+                </Link>
+            
                 <p className="mt-2 flex flex-wrap gap-2 text-sm text-stone-600">
                     <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5">
                       {selectedStation.network}

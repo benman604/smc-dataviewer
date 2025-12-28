@@ -262,27 +262,41 @@ function StationRecordsContent() {
               Back to Stations
             </Link>
             
-            <h2 className="font-large merriweather font-bold">Station Records</h2>
             
             {/* Station info */}
             {station && (
-              <div className="mt-2 p-2 bg-stone-50 border border-stone-300 rounded text-sm">
-                <div className="flex gap-2 items-start">
-                  <div 
-                    className="w-10 h-7 text-xs font-bold flex items-center justify-center border border-stone-500 shrink-0"
-                    style={{ backgroundColor: getStationColor() }}
-                  >
-                    {station.network}
-                  </div>
-                  <div>
-                    <p className="font-semibold">{station.code} - {station.name}</p>
+                <>
+                    <h2 className="font-large merriweather font-bold">{station.code} - {station.name}</h2>
                     <p className="text-xs text-stone-500">
-                      {station.type} · {station.status}
-                      {station.Vs30 && ` · Vs30: ${station.Vs30}`}
+                        Lat: {station.latitude.toFixed(4)}, Lon: {station.longitude.toFixed(4)}
+                        {station.elevation && <>, Elev: {station.elevation} m</>}
                     </p>
-                  </div>
-                </div>
-              </div>
+                    <p className="text-xs text-stone-500">
+                        {[
+                            station.type,
+                            station.status,
+                            station.Vs30 && `Vs30: ${station.Vs30}`
+                        ].filter(Boolean).join(' · ')}
+                    </p>
+                </>
+
+            //   <div className="mt-2 p-2 bg-stone-50 border border-stone-300 rounded text-sm">
+            //     <div className="flex gap-2 items-start">
+            //       <div 
+            //         className="w-10 h-7 text-xs font-bold flex items-center justify-center border border-stone-500 shrink-0"
+            //         style={{ backgroundColor: getStationColor() }}
+            //       >
+            //         {station.network}
+            //       </div>
+            //       <div>
+            //         <p className="font-semibold">{station.code} - {station.name}</p>
+            //         <p className="text-xs text-stone-500">
+            //           {station.type} · {station.status}
+            //           {station.Vs30 && ` · Vs30: ${station.Vs30}`}
+            //         </p>
+            //       </div>
+            //     </div>
+            //   </div>
             )}
             
             {/* Loading / Error / Count */}

@@ -32,7 +32,9 @@ export default function EventLegend({ onClose, children }: EventLegendProps) {
           ].map((d, i) => {
             const sampleDate = new Date(Date.now());
             sampleDate.setDate(sampleDate.getDate() - d.dateOffsetDays);
-            const color = timeToIconColor(sampleDate.toISOString());
+            // Format as "YYYY-MM-DD HH:MM:SS" to match timeToIconColor's expected format
+            const formattedDate = sampleDate.toISOString().replace('T', ' ').slice(0, 19);
+            const color = timeToIconColor(formattedDate);
             return (
               <div key={i} className="flex items-center gap-2 text-xs">
                 <div style={{ width: 14, height: 14, backgroundColor: color, borderRadius: 8, border: '1px solid #777' }} />

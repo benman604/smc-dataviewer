@@ -29,7 +29,7 @@ export default function Header() {
         >
           Stations
         </Link>
-        <Link 
+        {/* <Link 
           href="/archive" 
           className={`px-3 py-1 ml-2 nav-btn ${pathname === "/archive" ? "font-bold" : ""}`}
         >
@@ -40,7 +40,7 @@ export default function Header() {
           className={`px-3 py-1 ml-2 nav-btn ${pathname === "/search" ? "font-bold" : ""}`}
         >
           Search
-        </Link>
+        </Link> */}
         <Link 
           href="/attribution" 
           className={`px-3 py-1 ml-2 nav-btn ${pathname === "/attribution" ? "font-bold" : ""}`}
