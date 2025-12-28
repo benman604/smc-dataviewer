@@ -80,17 +80,24 @@ export default function FilterStations({ filters, onChange, onSubmit }: FilterSt
                     </label>
                     <button
                         type="button"
-                        className="text-xs text-blue-600 hover:text-blue-700"
+                        className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
                         onClick={() => setExpanded(!expanded)}
                     >
                         {expanded ? 'Hide networks' : 'Show all networks'}
                     </button>
                     <button
                         type="button"
-                        className="text-xs text-red-600 hover:text-red-700"
+                        className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
+                        onClick={() => update({ networks: networkIds })}
+                    >
+                        Any
+                    </button>
+                    <button
+                        type="button"
+                        className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer"
                         onClick={() => update({ networks: [] })}
                     >
-                        Clear selection
+                        None
                     </button>
                 </div>
                 {expanded && (
@@ -133,14 +140,14 @@ export default function FilterStations({ filters, onChange, onSubmit }: FilterSt
                         <input
                             type="number"
                             placeholder="Min"
-                            className="w-full text-xs p-1 border border-stone-300 rounded"
+                            className="w-full text-xs p-1 border border-stone-300 bg-white rounded"
                             value={filters.vs30Min ?? ''}
                             onChange={(e) => update({ vs30Min: e.target.value ? parseFloat(e.target.value) : null })}
                         />
                         <input
                             type="number"
                             placeholder="Max"
-                            className="w-full text-xs p-1 border border-stone-300 rounded"
+                            className="w-full text-xs p-1 border border-stone-300 bg-white rounded"
                             value={filters.vs30Max ?? ''}
                             onChange={(e) => update({ vs30Max: e.target.value ? parseFloat(e.target.value) : null })}
                         />
@@ -159,7 +166,7 @@ export default function FilterStations({ filters, onChange, onSubmit }: FilterSt
 
             <button
                 type="button"
-                className="mt-3 w-full py-1.5 bg-black text-white text-sm font-medium hover:bg-purple-700 rounded"
+                className="mt-3 w-full py-1.5 bg-black text-white text-sm font-medium hover:bg-gray-800 rounded"
                 onClick={onSubmit}
             >
                 Apply Filters

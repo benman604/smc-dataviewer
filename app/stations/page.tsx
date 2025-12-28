@@ -7,7 +7,7 @@ import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/
 import StationLegend from "../components/StationLegend";
 import { StationFeature, StationsResponse, BaseStation } from "../lib/definitions";
 import { SMCStationsURL, bboxToCenterZoom } from "../lib/util";
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense, useRef } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
@@ -67,8 +67,6 @@ function featureToStationInfo(feature: StationFeature): StationInfo {
   };
 }
 
-// Only auto-zoom to fit stations if count is below this threshold
-const AUTO_ZOOM_MAX_STATIONS = 200;
 // Maximum visible stations before requiring zoom
 const MAX_VISIBLE_STATIONS = 1000;
 
@@ -105,6 +103,7 @@ function StationsContent() {
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const isInitialFetchRef = useRef<boolean>(true);
 
   const defaultFilters: StationFilters = {
     stationName: "",
@@ -137,8 +136,11 @@ function StationsContent() {
       setStations(stationList);
       setTotalCount(data.metadata?.count?.total || stationList.length);
 
-      // Only auto-zoom to fit stations if count is small enough
-      if (stationList.length > 0 && stationList.length <= AUTO_ZOOM_MAX_STATIONS) {
+      // Auto-zoom to fit stations, except on initial fetch
+      const shouldAutoZoom = !isInitialFetchRef.current;
+      isInitialFetchRef.current = false;
+      
+      if (stationList.length > 0 && shouldAutoZoom) {
         const lats = stationList.map(s => s.latitude);
         const lons = stationList.map(s => s.longitude);
         const minLat = Math.min(...lats);
@@ -403,7 +405,7 @@ function StationsContent() {
           
           {/* Zoom warning overlay */}
           {visibleStations.length > MAX_VISIBLE_STATIONS && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-100 border border-amber-400 text-amber-800 px-4 py-2 rounded shadow-md text-sm" style={{ zIndex: 100000 }}>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-100 border border-amber-400 px-4 py-2 text-sm" style={{ zIndex: 100000 }}>
               Zoom in to view station markers
             </div>
           )}

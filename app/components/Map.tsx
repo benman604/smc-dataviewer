@@ -70,12 +70,20 @@ function ChangeView({ view, updateMapView, animate = true }: { view: MapView, up
 
 function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?: MapBounds }) => void }) {
   const map = useMap();
+  const onViewChangeRef = useRef(onViewChange);
+  const initializedRef = useRef(false);
+  
+  // Keep ref up to date
   useEffect(() => {
-    if (!onViewChange) return;
+    onViewChangeRef.current = onViewChange;
+  }, [onViewChange]);
+  
+  useEffect(() => {
     const handler = () => {
+      if (!onViewChangeRef.current) return;
       const c = map.getCenter();
       const b = map.getBounds();
-      onViewChange({
+      onViewChangeRef.current({
         center: [c.lat, c.lng],
         zoom: map.getZoom(),
         bounds: {
@@ -86,13 +94,18 @@ function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?
         }
       });
     };
+    // Call handler once on mount to set initial bounds
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      handler();
+    }
     map.on('moveend', handler);
     map.on('zoomend', handler);
     return () => {
       map.off('moveend', handler);
       map.off('zoomend', handler);
     };
-  }, [map, onViewChange]);
+  }, [map]);
   return null;
 }
 

@@ -273,9 +273,9 @@ export function SMCStationsURL(filters: StationFilters): string {
     if (typeCode) params.append("sttype", typeCode);
   }
   
-  // Station name (wildcard search)
+  // Station name
   if (filters.stationName) {
-    params.append("stname", `*${filters.stationName}*`);
+    params.append("stname", `${filters.stationName}`);
   }
   
   // Station code
