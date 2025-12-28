@@ -246,6 +246,18 @@ export function SMCRecordsURL(eventId: string): string {
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }
 
+export function SMCStationRecordsURL(stcode: string): string {
+  const params = new URLSearchParams();
+  params.append("stcode", stcode);
+  params.append("orderby", "epidist-asc");
+  params.append("rettype", "metadata");
+  params.append("format", "json");
+  params.append("groupby", "station");
+  params.append("nodata", "404");
+  
+  return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
+}
+
 import { StationFilters, DEFAULT_NETWORKS } from '../components/FilterStations';
 
 // Station type code mapping for API

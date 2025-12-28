@@ -1,5 +1,6 @@
 "use client";
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 const Map = dynamic(() => import('../components/Map'), { ssr: false });
 const StationMarker = dynamic(() => import('../components/StationMarker'), { ssr: false });
 import type { MapView } from "../components/Map";
@@ -531,16 +532,25 @@ function StationsContent() {
                     </div>
                   )}
 
-                  {selectedStation.stationpage && (
-                    <a
-                      href={selectedStation.stationpage}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                  <div className="mt-3 flex flex-col gap-2">
+                    <Link
+                      href={`/stations/records?stcode=${selectedStation.network}${selectedStation.code}`}
+                      className="block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
                     >
-                      View Station Page
-                    </a>
-                  )}
+                      View Earthquake Records
+                    </Link>
+                    
+                    {selectedStation.stationpage && (
+                      <a
+                        href={selectedStation.stationpage}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-center py-2 bg-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-300"
+                      >
+                        View Station Page
+                      </a>
+                    )}
+                  </div>
                 </div>
               </>
             )}
