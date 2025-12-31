@@ -14,7 +14,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 
 type Recency = "Day" | "Week" | "Month" | "Year" | null;
 type OrderBy = {
@@ -468,7 +468,7 @@ export default function Home() {
               {/* Left: Filter link */}
               <div className="flex-1">
                 <button className="text-blue-600 hover:text-blue-700 hover:cursor-pointer text-sm" onClick={() => setFilterOpen(!filterOpen)}>
-                  <FontAwesomeIcon icon={filterOpen ? faCircleXmark : faFilter} /> {filterOpen ? 'Close' : 'Filter'}
+                  <FontAwesomeIcon icon={filterOpen ? faCircleXmark : faSearch} /> {filterOpen ? 'Close' : 'Search'}
                 </button>
               </div>
 

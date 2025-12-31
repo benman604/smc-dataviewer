@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import FilterBase, { BaseFilters, StationType, NETWORK_MAP, STATION_TYPES } from './FilterBase';
-
+import FilterBase, { BaseFilters, StationType, STATION_TYPES } from './FilterBase';
+import { NETWORK_MAP } from '../lib/definitions';
 export type { StationType };
 
 // Default networks to query
@@ -169,7 +169,7 @@ export default function FilterStations({ filters, onChange, onSubmit }: FilterSt
                 className="mt-3 w-full py-1.5 bg-black text-white text-sm font-medium hover:bg-gray-800 rounded"
                 onClick={onSubmit}
             >
-                Apply Filters
+                Search
             </button>
         </FilterBase>
     );

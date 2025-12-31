@@ -1,5 +1,94 @@
 export type FaultType = 'NM' | 'RS' | 'SS';
 
+export const NETWORK_MAP: Record<string, string> = {
+    '08': 'Hokkaido University',
+    'AA': 'Anchorage Strong Motion Network',
+    'AK': 'University of Alaska Geophysical Institute',
+    'AZ': 'Anza',
+    'BG': 'Berkeley Geysers Network',
+    'BK': 'Berkeley Digital Seismic Network',
+    'C1': 'Red Sismologica Nacional',
+    'CB': 'Institute of Geophysics China Earthquake Administration (IGP)',
+    'CE': 'California Strong Motion Instrumentation Program',
+    'CF': 'Red Acelerografica Nacional de la Comision Federal de Electr',
+    'CI': 'California Institute of Technology',
+    'CU': 'Albuquerque Seismological Laboratory',
+    'C_': 'C&GS',
+    'EC': 'Ecuador Seismic Network',
+    'ES': 'Spanish Digital Seismic Network',
+    'GI': 'Red Sismologica Nacional-Guatemala',
+    'G_': 'GEOSCOPE',
+    'HV': 'Hawaiian Volcano Observatory Network',
+    'IT': 'Italian Strong Motion Network',
+    'IU': 'GSN - IRIS/USGS',
+    'IV': 'Istituto Nazionale di Geofisica e Vulcanologia',
+    'JP': 'Japan Networks',
+    'LA': 'Los Angeles Basin Seismic Network',
+    'MN': 'Mediterranean Very Broadband Seismographic Network',
+    'NC': 'USGS Northern California Regional Network',
+    'ND': 'New Caledonia Broadband Seismic Network (SismoCal)',
+    'NM': 'New Madrid Seismic Network',
+    'NN': 'Nevada Seismic Network',
+    'NP': 'National Strong Motion Project',
+    'NZ': 'New Zealand',
+    'OK': 'Oklahoma Geological Survey',
+    'OV': 'Observatorio Vulcanologico y Sismologico de Costa Rica',
+    'PA': 'Observatorio Sismico del Occidente de Panamá',
+    'PG': 'PG',
+    'PR': 'Puerto Rico Strong Motion Program (PRSMP)',
+    'TO': 'Caltech Tectonic Observatory',
+    'TU': 'Turkey Networks',
+    'US': 'National Earthquake Information Center',
+    'UW': 'PNSN',
+    'WR': 'California Department of Water Resources',
+    '_C': 'Chilean Networks',
+};
+
+// Network colors for station markers (excluding gray which is reserved for abandoned)
+export const NETWORK_COLORS: Record<string, string> = {
+    '08': '#e6194b',  // red
+    'AA': '#3cb44b',  // green
+    'AK': '#4363d8',  // blue
+    'AZ': '#f58231',  // orange
+    'BG': '#911eb4',  // purple
+    'BK': '#42d4f4',  // cyan
+    'C1': '#f032e6',  // magenta
+    'CB': '#bfef45',  // lime
+    'CE': '#d6932d',  // golden/tan (California main network)
+    'CF': '#469990',  // teal
+    'CI': '#9A6324',  // brown
+    'CU': '#800000',  // maroon
+    'C_': '#aaffc3',  // mint
+    'EC': '#808000',  // olive
+    'ES': '#000075',  // navy
+    'GI': '#a9a9a9',  // dark gray (exception)
+    'G_': '#ffd8b1',  // apricot
+    'HV': '#e6beff',  // lavender
+    'IT': '#fffac8',  // beige
+    'IU': '#fabebe',  // pink
+    'IV': '#7cb9e8',  // light blue
+    'JP': '#c9ffe5',  // aero blue
+    'LA': '#b5651d',  // light brown
+    'MN': '#de5d83',  // blush
+    'NC': '#8B4513',  // saddle brown
+    'ND': '#708090',  // slate gray
+    'NM': '#ff6961',  // pastel red
+    'NN': '#77dd77',  // pastel green
+    'NP': '#1e90ff',  // dodger blue
+    'NZ': '#ffb347',  // pastel orange
+    'OK': '#b19cd9',  // pastel purple
+    'OV': '#87ceeb',  // sky blue
+    'PA': '#dda0dd',  // plum
+    'PG': '#98fb98',  // pale green
+    'PR': '#ff69b4',  // hot pink
+    'TO': '#20b2aa',  // light sea green
+    'TU': '#cd853f',  // peru
+    'US': '#4169e1',  // royal blue
+    'UW': '#32cd32',  // lime green
+    'WR': '#6495ed',  // cornflower blue
+    '_C': '#db7093',  // pale violet red
+};
+
 export type Event = {
 	cesmd_id: string;
 	geometry: {

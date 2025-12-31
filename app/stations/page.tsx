@@ -6,12 +6,12 @@ const StationMarker = dynamic(() => import('../components/StationMarker'), { ssr
 import type { MapView } from "../components/Map";
 import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/FilterStations";
 import StationLegend from "../components/StationLegend";
-import { StationFeature, StationsResponse, BaseStation } from "../lib/definitions";
+import { StationFeature, StationsResponse, BaseStation, NETWORK_COLORS } from "../lib/definitions";
 import { SMCStationsURL, bboxToCenterZoom } from "../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 
 type OrderBy = {
   field: "name" | "code" | "network" | "type" | "vs30";
@@ -271,9 +271,10 @@ function StationsContent() {
     }
   }, [selectedStation, visibleStations]);
 
-  // Get station fill color based on status
+  // Get station fill color based on network (gray for abandoned)
   const getStationColor = (station: BaseStation) => {
-    return station.status === 'Active' ? '#d6932d' : '#cccccc';
+    if (station.status !== 'Active') return '#cccccc';
+    return NETWORK_COLORS[station.network] || '#d6932d';
   };
 
   return (
@@ -318,7 +319,7 @@ function StationsContent() {
             {/* Left: Filter link */}
             <div className="flex-1">
               <button className="text-blue-600 hover:text-blue-700 hover:cursor-pointer text-sm" onClick={() => setFilterOpen(!filterOpen)}>
-                <FontAwesomeIcon icon={filterOpen ? faCircleXmark : faFilter} /> {filterOpen ? 'Close' : 'Filter'}
+                <FontAwesomeIcon icon={filterOpen ? faCircleXmark : faSearch} /> {filterOpen ? 'Close' : 'Search'}
               </button>
             </div>
 

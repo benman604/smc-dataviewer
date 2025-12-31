@@ -79,7 +79,7 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
                 className="mt-2 w-full bg-black text-white text-sm p-1 hover:bg-gray-800 cursor-pointer rounded"
                 onClick={validateAndApply}
             >
-                Apply Filters
+                Search
             </button>
         </FilterEventsBase>
     )
