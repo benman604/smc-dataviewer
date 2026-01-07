@@ -2,14 +2,14 @@
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-const Map = dynamic(() => import('../components/Map'), { ssr: false });
-const StationMarker = dynamic(() => import('../components/StationMarker'), { ssr: false });
-const EpicenterMarker = dynamic(() => import('../components/EpicenterMarker'), { ssr: false });
-import type { MapView } from "../components/Map";
-import FilterRecords, { RecordFilters } from "../components/FilterRecords";
-import RecordLegend from "../components/RecordLegend";
-import { RecordStation, RecordsResponse } from "../lib/definitions";
-import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../lib/util";
+const Map = dynamic(() => import('../../components/Map'), { ssr: false });
+const StationMarker = dynamic(() => import('../../components/markers/StationMarker'), { ssr: false });
+const EpicenterMarker = dynamic(() => import('../../components/markers/EpicenterMarker'), { ssr: false });
+import type { MapView } from "../../components/Map";
+import FilterEventRecords, { RecordFilters } from "../../components/filters/FilterEventRecords";
+import RecordLegend from "../../components/legends/RecordLegend";
+import { RecordStation, RecordsResponse } from "../../lib/definitions";
+import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -282,7 +282,7 @@ function RecordsContent() {
           </div>
 
           <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filterOpen ? 'max-h-500px translate-y-0 opacity-100' : 'max-h-0 -translate-y-3 opacity-0 pointer-events-none'}`}>
-            <FilterRecords filters={filters} onChange={setFilters} />
+            <FilterEventRecords filters={filters} onChange={setFilters} />
           </div>
 
           <div className="mt-2 flex items-center text-s">

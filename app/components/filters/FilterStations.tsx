@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import FilterBase, { BaseFilters, StationType, STATION_TYPES } from './FilterBase';
-import { NETWORK_MAP } from '../lib/definitions';
+import { NETWORK_MAP } from '../../lib/definitions';
 export type { StationType };
 
 // Default networks to query

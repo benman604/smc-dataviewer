@@ -2,11 +2,11 @@
 "use client";
 
 import { useState } from 'react';
-import FilterEventsBase from './FilterEventsBase';
+import FilterStationRecords from './FilterStationRecords';
 
 // Re-export EventFilters type for convenience
-export type { EventFilters } from './FilterEventsBase';
-import type { EventFilters } from './FilterEventsBase';
+export type { EventFilters } from './FilterStationRecords';
+import type { EventFilters } from './FilterStationRecords';
 
 type FilterEventsProps = {
     filters: EventFilters;
@@ -72,7 +72,7 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
     }
 
     return (
-        <FilterEventsBase filters={filters} onChange={onChange}>
+        <FilterStationRecords filters={filters} onChange={onChange}>
             {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
 
             <button 
@@ -81,6 +81,6 @@ export default function FilterEvents({ filters, onChange, onApply }: FilterEvent
             >
                 Search
             </button>
-        </FilterEventsBase>
+        </FilterStationRecords>
     )
 }

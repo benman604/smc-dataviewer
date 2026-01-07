@@ -1,5 +1,5 @@
-import { Event } from "../lib/definitions";
-import { timeToIconColor, magToIconDiameter } from "../lib/util";
+import { Event } from "../../lib/definitions";
+import { timeToIconColor, magToIconDiameter } from "../../lib/util";
 import { Marker, Popup } from 'react-leaflet'
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';

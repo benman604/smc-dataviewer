@@ -2,12 +2,12 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 const Map = dynamic(() => import('../../components/Map'), { ssr: false });
-const EventMarker = dynamic(() => import('../../components/EventMarker'), { ssr: false });
-const StationMarker = dynamic(() => import('../../components/StationMarker'), { ssr: false });
+const EventMarker = dynamic(() => import('../../components/markers/EventMarker'), { ssr: false });
+const StationMarker = dynamic(() => import('../../components/markers/StationMarker'), { ssr: false });
 import type { MapView } from "../../components/Map";
-import FilterEventsBase from "../../components/FilterEventsBase";
-import type { EventFilters } from "../../components/FilterEventsBase";
-import EventLegend from "../../components/EventLegend";
+import FilterStationRecords from "../../components/filters/FilterStationRecords";
+import type { EventFilters } from "../../components/filters/FilterStationRecords";
+import EventLegend from "../../components/legends/EventLegend";
 import { RecordStation, StationEvent, RecordsResponse, Event, BaseStation } from "../../lib/definitions";
 import { timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCStationRecordsURL, CISNShakemapURL } from "../../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -322,7 +322,7 @@ function StationRecordsContent() {
             </div>
 
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filterOpen ? 'max-h-96 translate-y-0 opacity-100' : 'max-h-0 -translate-y-3 opacity-0 pointer-events-none'}`}>
-              <FilterEventsBase filters={filters} onChange={setFilters} />
+              <FilterStationRecords filters={filters} onChange={setFilters} />
             </div>
 
             <div className="mt-2 flex items-center text-s">
@@ -495,7 +495,7 @@ function StationRecordsContent() {
 
                   <div className="flex flex-wrap justify-center gap-2 mt-3">
                     <Link
-                      href={`/records?evid=${selectedEvent.id}`}
+                      href={`/events/records?evid=${selectedEvent.id}`}
                       className="flex flex-col items-center py-1 px-2 opacity-70 hover:opacity-100 bg-white cursor-pointer"
                       title="Interactive Map"
                     >

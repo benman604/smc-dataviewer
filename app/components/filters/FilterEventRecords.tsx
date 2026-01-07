@@ -13,12 +13,12 @@ export type RecordFilters = BaseFilters & {
     sa1Max: number | null;
 }
 
-type FilterRecordsProps = {
+type FilterEventRecordsProps = {
     filters: RecordFilters;
     onChange: (next: RecordFilters) => void;
 }
 
-export default function FilterRecords({ filters, onChange }: FilterRecordsProps) {
+export default function FilterEventRecords({ filters, onChange }: FilterEventRecordsProps) {
     const update = (patch: Partial<RecordFilters>) => {
         onChange({ ...filters, ...patch });
     }

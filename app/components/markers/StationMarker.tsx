@@ -1,5 +1,5 @@
-import { BaseStation, RecordStation } from "../lib/definitions";
-import { pgaToColor, getMaxPGA } from "../lib/util";
+import { BaseStation, RecordStation } from "../../lib/definitions";
+import { pgaToColor, getMaxPGA } from "../../lib/util";
 import { Marker } from 'react-leaflet'
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';

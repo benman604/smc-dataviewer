@@ -188,7 +188,7 @@ export function parseImplicitUTCToLocal(time: string): Date {
   return new Date(time.replace(" ", "T") + "Z");
 }
 
-import { EventFilters } from '../components/FilterEvents';
+import { EventFilters } from '../components/filters/FilterEvents';
 import { Event } from './definitions';
 
 export function SMCDataURL(filters: EventFilters): string {
@@ -258,7 +258,7 @@ export function SMCStationRecordsURL(stcode: string): string {
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }
 
-import { StationFilters, DEFAULT_NETWORKS } from '../components/FilterStations';
+import { StationFilters, DEFAULT_NETWORKS } from '../components/filters/FilterStations';
 
 // Station type code mapping for API
 const STATION_TYPE_CODES: Record<string, string> = {

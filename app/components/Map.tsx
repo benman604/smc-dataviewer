@@ -203,7 +203,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       scrollWheelZoom={false}
       // @ts-ignore
       smoothWheelZoom={true}
-      smoothSensitivity={10}
+      smoothSensitivity={5}
       style={{ height: '100%', width: '100%' }}
     >
       <ChangeView view={view} updateMapView={updateMapView} animate={animateView} />

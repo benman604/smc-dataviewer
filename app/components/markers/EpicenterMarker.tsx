@@ -79,14 +79,14 @@ export default function EpicenterMarker({ latitude, longitude, depth, magnitude 
             icon={icon}
             ref={markerRef}
         >
-            <Popup>
+            {/* <Popup>
                 <div className="text-sm text-center">
                     <div className="font-bold">Epicenter</div>
                     <div><span className="font-medium">Lat:</span> {latitude.toFixed(4)}</div>
                     <div><span className="font-medium">Lon:</span> {longitude.toFixed(4)}</div>
                     {depth !== undefined && <div><span className="font-medium">Depth:</span> {depth} km</div>}
                 </div>
-            </Popup>
+            </Popup> */}
         </Marker>
     );
 }

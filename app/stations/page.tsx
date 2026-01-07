@@ -2,10 +2,10 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 const Map = dynamic(() => import('../components/Map'), { ssr: false });
-const StationMarker = dynamic(() => import('../components/StationMarker'), { ssr: false });
+const StationMarker = dynamic(() => import('../components/markers/StationMarker'), { ssr: false });
 import type { MapView } from "../components/Map";
-import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/FilterStations";
-import StationLegend from "../components/StationLegend";
+import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/filters/FilterStations";
+import StationLegend from "../components/legends/StationLegend";
 import { StationFeature, StationsResponse, BaseStation, NETWORK_COLORS } from "../lib/definitions";
 import { SMCStationsURL, bboxToCenterZoom } from "../lib/util";
 import { useState, useEffect, useMemo, Suspense } from "react";

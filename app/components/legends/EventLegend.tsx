@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { timeToIconColor, magToIconDiameter } from '../lib/util';
+import { timeToIconColor, magToIconDiameter } from '../../lib/util';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 

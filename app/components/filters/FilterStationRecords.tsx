@@ -1,6 +1,6 @@
 "use client";
 
-import { FaultType } from '../lib/definitions'
+import { FaultType } from '../../lib/definitions'
 
 export type EventFilters = {
     startDate?: string; // YYYY-MM-DD
@@ -13,13 +13,13 @@ export type EventFilters = {
     magMax?: number | null;
 }
 
-type FilterEventsBaseProps = {
+type FilterStationRecordsProps = {
     filters: EventFilters;
     onChange: (next: EventFilters) => void;
     children?: React.ReactNode;
 }
 
-export default function FilterEventsBase({ filters, onChange, children }: FilterEventsBaseProps) {
+export default function FilterStationRecords({ filters, onChange, children }: FilterStationRecordsProps) {
 
     const update = (patch: Partial<EventFilters>) => {
         onChange({ ...filters, ...patch });
