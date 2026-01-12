@@ -18,7 +18,7 @@ export default function Header() {
       <nav className="flex items-center h-full">
         <Link 
           href="/" 
-          className={`px-3 py-1 nav-btn ${pathname === "/" ? "font-semibold" : ""}`}
+          className={`px-3 py-1 nav-btn ${pathname === "/events" ? "font-semibold" : ""}`}
           title="Currently viewing earthquakes"
         >
           Earthquakes

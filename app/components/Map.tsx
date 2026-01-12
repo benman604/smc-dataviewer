@@ -7,7 +7,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMap, faCircleInfo, faTimes, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+import { faMap, faCircleInfo, faDownload, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import "@luomus/leaflet-smooth-wheel-zoom";
 
 export type MapView = {
@@ -35,6 +35,7 @@ type MapProps = {
   onViewChange?: (view: MapView) => void;
   updateMapView: boolean;
   legend?: React.ReactNode;
+  download?: React.ReactNode;
   animateView?: boolean;
 }
 
@@ -143,7 +144,7 @@ function MapContentGuard({ children }: { children: React.ReactNode }) {
 }
 
 
-const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend, animateView = true }: MapProps, ref) {
+const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend, animateView = true, download }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
@@ -277,6 +278,19 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           >
             <FontAwesomeIcon icon={faMap} />
           </button>
+
+          {download && (
+            <button
+              className={`p-1 text-xl cursor-pointer text-stone-700 ${showBasemap ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+              title="Download Data"
+              onClick={() => {
+                setShowBasemap((s) => !s);
+                setShowLegend(false);
+              }}
+            >
+              <FontAwesomeIcon icon={faDownload} />
+            </button>
+          )}
         </div>
 
       </div>
