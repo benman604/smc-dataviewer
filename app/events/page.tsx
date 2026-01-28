@@ -541,8 +541,8 @@ export default function Home() {
         </aside>
 
         <main className="flex-1 min-h-0">
-          <section className="h-full min-h-0 relative">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />}>
+          <section className="h-full min-h-0 relative overflow-hidden">
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} download={true}>
               {showPolygons && <ShakemapPolygons />}
               {visibleEvents.toReversed().map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
@@ -550,7 +550,7 @@ export default function Home() {
             </Map>
             
             {/* Floating panel (animated) */}
-            <div className={`absolute top-4 right-4 w-80 p-4 bg-white border border-stone-300 transform transition-all duration-300 ease-in-out ${panelOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`} style={{ zIndex: 100000 }} aria-hidden={!panelOpen}>
+            <div className={`absolute top-4 w-80 p-4 bg-white border border-stone-300 transition-all duration-300 ease-in-out ${panelOpen ? 'right-4 opacity-100 pointer-events-auto' : 'right-[-22rem] opacity-0 pointer-events-none'}`} style={{ zIndex: 100000 }} aria-hidden={!panelOpen}>
               {/* close button (positioned top-right) */}
               <button
                 className="flex items-center justify-center pt-0 mt-0 mb-2 text-blue-500 hover:text-blue-700 hover:cursor-pointer"
