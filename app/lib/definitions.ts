@@ -89,6 +89,10 @@ export const NETWORK_COLORS: Record<string, string> = {
     '_C': '#db7093',  // pale violet red
 };
 
+// Marker border colors for map themes
+export const MARKER_BORDER_LIGHT = 'black';
+export const MARKER_BORDER_DARK = '#5e5e5e';
+
 export type Event = {
 	cesmd_id: string;
 	geometry: {

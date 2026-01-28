@@ -1,8 +1,11 @@
+"use client";
+import { useContext, useEffect, useRef } from 'react';
 import { Event } from "../../lib/definitions";
 import { timeToIconColor, magToIconDiameter } from "../../lib/util";
 import { Marker, Popup } from 'react-leaflet'
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import { MapThemeContext } from '../Map';
+import { MARKER_BORDER_DARK, MARKER_BORDER_LIGHT } from '../../lib/definitions';
 
 type EventMarkerProps = {
     event: Event;
@@ -14,6 +17,9 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
     const markerRef = useRef<L.Marker | null>(null);
     const diameter = magToIconDiameter(event.properties.mag ?? 0);
 
+    const { isDark } = useContext(MapThemeContext);
+    const strokeColor = isDark ? MARKER_BORDER_DARK : MARKER_BORDER_LIGHT;
+
     const icon = L.divIcon({
         className: '',
         html: `
@@ -22,7 +28,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
             height:${diameter}px;
             line-height:${diameter}px;
             background-color: ${timeToIconColor(event.properties.time)};
-            outline: ${isSelected ? 5 : 1}px solid black;
+            outline: ${isSelected ? 7 : 1}px solid ${strokeColor};
             border-radius: 50%;
             text-align: center;
             font-weight: bold;

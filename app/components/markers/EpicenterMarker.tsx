@@ -1,6 +1,7 @@
+"use client";
+import { useEffect, useRef } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
 
 type EpicenterMarkerProps = {
     latitude: number;
@@ -43,7 +44,7 @@ export default function EpicenterMarker({ latitude, longitude, depth, magnitude 
                 width: ${dotSize}px;
                 height: ${dotSize}px;
                 background-color: #dc2626;
-                border: 5px solid #fff;
+                border: 5px solid white;
                 border-radius: 50%;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.5);
             "></div>

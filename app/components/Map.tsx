@@ -6,6 +6,8 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
+
+export const MapThemeContext = React.createContext<{ isDark: boolean }>({ isDark: false });
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMap, faCircleInfo, faDownload, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 // import "@luomus/leaflet-smooth-wheel-zoom";
@@ -145,9 +147,10 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   });
   const basemaps: Basemap = {
     osm: { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
-    topo: { name: 'Topographic (Esri World Topo)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri, USGS, NOAA' },
+    topo: { name: 'Topographic', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri, USGS, NOAA' },
+    dark: { name: 'Dark', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors &copy; CARTO' },
     sat:   { 
-      name: "Satellite (Esri)",
+      name: "Satellite",
       url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       attribution: "&copy; Esri",
       overlay: {
@@ -160,10 +163,23 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
 
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [basemap, setBasemap] = useState<BasemapKey>('osm');
+  const [basemap, setBasemap] = useState<BasemapKey>(() => {
+    try {
+      if (typeof window === 'undefined') return 'osm';
+      const saved = localStorage.getItem('strongmotion:basemap');
+      if (saved && (saved in basemaps)) return saved as BasemapKey;
+    } catch (e) {}
+    return 'osm';
+  });
   const [showLegend, setShowLegend] = useState<boolean>(false);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
   const base = basemaps[basemap];
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('strongmotion:basemap', basemap);
+    } catch (e) {}
+  }, [basemap]);
   
   // Clear any stale Leaflet instance on the container during hot reload
   // This fixes "Map container is being reused by another instance" error
@@ -204,23 +220,25 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
       <MapEvents onViewChange={onViewChange} />
       <MapInit mapRef={mapRef} />
 
-        {base && (
-          <TileLayer
-            key={`base-${basemap}-${base.url}`}
-            attribution={base.attribution ?? ''}
-            url={base.url}
-          />
-        )}
+        <MapThemeContext.Provider value={{ isDark: basemap === 'dark' }}>
+          {base && (
+            <TileLayer
+              key={`base-${basemap}-${base.url}`}
+              attribution={base.attribution ?? ''}
+              url={base.url}
+            />
+          )}
 
-        {base?.overlay && (
-          <TileLayer
-            key={`overlay-${basemap}-${base?.overlay?.url}`}
-            attribution={base.overlay.attribution ?? ''}
-            url={base.overlay.url}
-          />
-        )}
+          {base?.overlay && (
+            <TileLayer
+              key={`overlay-${basemap}-${base?.overlay?.url}`}
+              attribution={base.overlay.attribution ?? ''}
+              url={base.overlay.url}
+            />
+          )}
 
-        {children}
+          {children}
+        </MapThemeContext.Provider>
 
       {/* Floating controls (lower-left) */}
       <div className="absolute left-4 bottom-4 z-50 flex flex-col gap-2" style={{zIndex: 10000000}}>

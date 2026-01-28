@@ -1,8 +1,11 @@
+"use client";
 import { BaseStation, RecordStation } from "../../lib/definitions";
 import { pgaToColor, getMaxPGA } from "../../lib/util";
+import { useContext, useEffect, useRef } from 'react';
 import { Marker } from 'react-leaflet'
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import { MapThemeContext } from '../Map';
+import { MARKER_BORDER_DARK, MARKER_BORDER_LIGHT } from '../../lib/definitions';
 
 type StationMarkerProps = {
     station: BaseStation;
@@ -26,10 +29,13 @@ export default function StationMarker({ station, onSelect, isSelected = false, f
     );
     
     const size = 12;
-    const strokeWidth = isSelected ? 3 : 1;
+    const strokeWidth = isSelected ? 5 : 1;
     const iconShape = station.status !== 'Active' ? 'diamond' : 
         station.type == "Ground" ? 'circle' :
         station.type == "Building" ? 'square' : 'triangle';
+
+    const { isDark } = useContext(MapThemeContext);
+    const strokeColor = isDark ? MARKER_BORDER_DARK : MARKER_BORDER_LIGHT;
 
     const getShapeSVG = () => {
         switch (iconShape) {
@@ -37,14 +43,14 @@ export default function StationMarker({ station, onSelect, isSelected = false, f
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <circle cx="${(size + 4) / 2}" cy="${(size + 4) / 2}" r="${size / 2}" 
-                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'square':
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <rect x="2" y="2" width="${size}" height="${size}" 
-                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'diamond':
@@ -53,7 +59,7 @@ export default function StationMarker({ station, onSelect, isSelected = false, f
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <polygon points="${diamondCenter},${diamondCenter - diamondHalf} ${diamondCenter + diamondHalf},${diamondCenter} ${diamondCenter},${diamondCenter + diamondHalf} ${diamondCenter - diamondHalf},${diamondCenter}" 
-                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             case 'triangle':
@@ -64,14 +70,14 @@ export default function StationMarker({ station, onSelect, isSelected = false, f
                 return `
                     <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
                         <polygon points="${svgWidth / 2},2 ${svgWidth - 2},${svgHeight - 2} 2,${svgHeight - 2}" 
-                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
             default:
                 return `
                     <svg width="${size + 4}" height="${size + 4}" viewBox="0 0 ${size + 4} ${size + 4}">
                         <rect x="2" y="2" width="${size}" height="${size}" 
-                            fill="${computedFillColor}" stroke="black" stroke-width="${strokeWidth}"/>
+                            fill="${computedFillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
                     </svg>
                 `;
         }
