@@ -35,7 +35,7 @@ export default function AttributionPage() {
           </a>
 
           <a
-            href="https://github.com/usgs"
+            href="https://github.com/benman604/smc-dataviewer"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-3 py-2 bg-stone-800 text-white hover:bg-stone-700 transition-colors"

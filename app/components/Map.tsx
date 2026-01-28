@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMap, faCircleInfo, faDownload, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
-import "@luomus/leaflet-smooth-wheel-zoom";
+// import "@luomus/leaflet-smooth-wheel-zoom";
 
 export type MapView = {
   center: [number, number];
@@ -45,26 +45,31 @@ export type MapHandle = {
 
 function ChangeView({ view, updateMapView, animate = true }: { view: MapView, updateMapView: boolean, animate?: boolean }) {
   const map = useMap();
-
   useEffect(() => {
     if (!map) return;
-    
-    // Check if map container exists and is connected to the DOM
+
+    // Only attempt to set the view when the map container is connected
     const container = map.getContainer();
     if (!container || !container.isConnected) return;
-    
-    // Additional check: ensure the map is properly initialized
-    // by verifying internal Leaflet structures exist
+
+    // Only set the view if it meaningfully differs from the current map view.
+    // This prevents feedback loops where setView -> moveend -> parent setState -> re-render -> setView ...
     try {
-      // This will throw if map's internal state is corrupted
-      map.getCenter();
-      map.setView(view.center, view.zoom, { animate });
-    } catch (error) {
-      // Map is in an invalid state (common during hot reload)
-      // Silently ignore - the map will reinitialize on next render
-      console.warn("Map setView failed (likely due to hot reload):", error);
+      const c = map.getCenter();
+      const z = map.getZoom();
+      const [tlat, tlng] = view.center;
+      const tzoom = view.zoom;
+      const latDiff = Math.abs(c.lat - tlat);
+      const lngDiff = Math.abs(c.lng - tlng);
+      const zoomDiff = Math.abs(z - tzoom);
+      const shouldSet = latDiff > 1e-5 || lngDiff > 1e-5 || zoomDiff > 1e-3;
+      if (shouldSet) {
+        map.setView(view.center, view.zoom, { animate });
+      }
+    } catch (err) {
+      console.warn('ChangeView setView failed:', err);
     }
-  }, [updateMapView, map]);
+  }, [map, view, updateMapView, animate]);
 
   return null;
 }
@@ -72,6 +77,7 @@ function ChangeView({ view, updateMapView, animate = true }: { view: MapView, up
 function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?: MapBounds }) => void }) {
   const map = useMap();
   const onViewChangeRef = useRef(onViewChange);
+  const lastEmittedRef = useRef<MapView & { bounds?: MapBounds } | null>(null);
   const initializedRef = useRef(false);
   
   // Keep ref up to date
@@ -84,8 +90,8 @@ function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?
       if (!onViewChangeRef.current) return;
       const c = map.getCenter();
       const b = map.getBounds();
-      onViewChangeRef.current({
-        center: [c.lat, c.lng],
+      const newView = {
+        center: [c.lat, c.lng] as [number, number],
         zoom: map.getZoom(),
         bounds: {
           north: b.getNorth(),
@@ -93,7 +99,20 @@ function MapEvents({ onViewChange }: { onViewChange?: (view: MapView & { bounds?
           east: b.getEast(),
           west: b.getWest(),
         }
-      });
+      } as MapView & { bounds?: MapBounds };
+
+      const last = lastEmittedRef.current;
+      let shouldEmit = true;
+      if (last) {
+        const latDiff = Math.abs(last.center[0] - newView.center[0]);
+        const lngDiff = Math.abs(last.center[1] - newView.center[1]);
+        const zoomDiff = Math.abs((last as any).zoom - newView.zoom);
+        shouldEmit = latDiff > 1e-5 || lngDiff > 1e-5 || zoomDiff > 1e-3;
+      }
+      if (shouldEmit) {
+        lastEmittedRef.current = newView;
+        onViewChangeRef.current(newView);
+      }
     };
     // Call handler once on mount to set initial bounds
     if (!initializedRef.current) {
@@ -118,32 +137,6 @@ function MapInit({ mapRef }: { mapRef: React.RefObject<L.Map | null> }) {
   return null;
 }
 
-// Guard component that checks if map is in a valid state before rendering children
-// This prevents errors during hot reload when Leaflet's internal state is corrupted
-// Uses synchronous check during render (not useEffect) to catch stale state
-function MapContentGuard({ children }: { children: React.ReactNode }) {
-  const map = useMap();
-  
-  // Synchronous validity check on every render
-  let isValid = false;
-  try {
-    if (map) {
-      const container = map.getContainer();
-      const tilePane = map.getPane('tilePane');
-      // Verify container is connected AND pane exists AND pane has parentNode
-      if (container && container.isConnected && tilePane && tilePane.parentNode) {
-        isValid = true;
-      }
-    }
-  } catch {
-    isValid = false;
-  }
-
-  if (!isValid) return null;
-  return <>{children}</>;
-}
-
-
 const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onViewChange, updateMapView, legend, animateView = true, download }: MapProps, ref) {
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
@@ -152,7 +145,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   });
   const basemaps: Basemap = {
     osm: { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
-    topo: { name: 'Topographic (OpenTopoMap)', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap contributors' },
+    topo: { name: 'Topographic (Esri World Topo)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri, USGS, NOAA' },
     sat:   { 
       name: "Satellite (Esri)",
       url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -201,18 +194,19 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
     <MapContainer
       center={view.center}
       zoom={view.zoom}
-      scrollWheelZoom={false}
+      scrollWheelZoom={true}
       // @ts-ignore
-      smoothWheelZoom={true}
+      // smoothWheelZoom={true}
       smoothSensitivity={5}
       style={{ height: '100%', width: '100%' }}
     >
       <ChangeView view={view} updateMapView={updateMapView} animate={animateView} />
       <MapEvents onViewChange={onViewChange} />
       <MapInit mapRef={mapRef} />
-      <MapContentGuard>
+
         {base && (
           <TileLayer
+            key={`base-${basemap}-${base.url}`}
             attribution={base.attribution ?? ''}
             url={base.url}
           />
@@ -220,13 +214,13 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
 
         {base?.overlay && (
           <TileLayer
+            key={`overlay-${basemap}-${base?.overlay?.url}`}
             attribution={base.overlay.attribution ?? ''}
             url={base.overlay.url}
           />
         )}
 
         {children}
-      </MapContentGuard>
 
       {/* Floating controls (lower-left) */}
       <div className="absolute left-4 bottom-4 z-50 flex flex-col gap-2" style={{zIndex: 10000000}}>
@@ -248,7 +242,12 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
             <div className="mt-2 flex flex-col gap-2">
               {Object.entries(basemaps).map(([key, bm]) => (
                 <label key={key} className="flex items-center gap-2 text-xs">
-                  <input type="radio" name="basemap" checked={basemap === key} onChange={() => setBasemap(key)} />
+                  <input
+                    type="radio"
+                    name="basemap"
+                    checked={basemap === (key as BasemapKey)}
+                    onChange={() => setBasemap(key as BasemapKey)}
+                  />
                   <div>{bm.name}</div>
                 </label>
               ))}
