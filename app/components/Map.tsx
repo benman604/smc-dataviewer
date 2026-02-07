@@ -9,7 +9,7 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } f
 
 export const MapThemeContext = React.createContext<{ isDark: boolean }>({ isDark: false });
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMap, faCircleInfo, faDownload, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
+import { faMap, faCircleInfo, faCircleXmark, faDownload } from '@fortawesome/free-solid-svg-icons'
 // import "@luomus/leaflet-smooth-wheel-zoom";
 
 export type MapView = {
@@ -173,6 +173,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   });
   const [showLegend, setShowLegend] = useState<boolean>(false);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
+  const [showDownload, setShowDownload] = useState<boolean>(false);
   const base = basemaps[basemap];
 
   useEffect(() => {
@@ -273,6 +274,16 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
           </div>
         )}
 
+        {showDownload && download && (
+          <div className="p-2 bg-white/95 text-sm text-stone-700">
+            <div className="flex justify-between items-center">
+              <div className="font-medium">Download</div>
+              <button className="text-stone-500 cursor-pointer" onClick={() => setShowDownload(false)}><FontAwesomeIcon icon={faCircleXmark} /></button>
+            </div>
+            {download}
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button
             className={`p-1 text-xl cursor-pointer text-stone-700 ${showLegend ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
@@ -280,6 +291,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
             onClick={() => {
               setShowLegend((s) => !s);
               setShowBasemap(false);
+              setShowDownload(false);
             }}
           >
             <FontAwesomeIcon icon={faCircleInfo} />
@@ -291,6 +303,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
             onClick={() => {
               setShowBasemap((s) => !s);
               setShowLegend(false);
+              setShowDownload(false);
             }}
           >
             <FontAwesomeIcon icon={faMap} />
@@ -298,11 +311,12 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
 
           {download && (
             <button
-              className={`p-1 text-xl cursor-pointer text-stone-700 ${showBasemap ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
-              title="Download Data"
+              className={`p-1 text-xl cursor-pointer text-stone-700 ${showDownload ? "bg-black text-white" : "bg-white hover:bg-stone-200"}`}
+              title="Download"
               onClick={() => {
-                setShowBasemap((s) => !s);
+                setShowDownload((s) => !s);
                 setShowLegend(false);
+                setShowBasemap(false);
               }}
             >
               <FontAwesomeIcon icon={faDownload} />

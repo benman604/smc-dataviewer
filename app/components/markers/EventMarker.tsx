@@ -27,6 +27,7 @@ export default function EventMarker({ event, onSelect, isSelected = false }: Eve
             width:${diameter}px;
             height:${diameter}px;
             line-height:${diameter}px;
+            color: black;
             background-color: ${timeToIconColor(event.properties.time)};
             outline: ${isSelected ? 7 : 1}px solid ${strokeColor};
             border-radius: 50%;

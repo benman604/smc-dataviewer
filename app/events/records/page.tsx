@@ -8,9 +8,10 @@ const EpicenterMarker = dynamic(() => import('../../components/markers/Epicenter
 import type { MapView } from "../../components/Map";
 import FilterEventRecords, { RecordFilters } from "../../components/filters/FilterEventRecords";
 import RecordLegend from "../../components/legends/RecordLegend";
-import { RecordStation, RecordsResponse } from "../../lib/definitions";
+import { RecordStation, RecordsResponse, SMC_RECORDS_DATA_FORMATS } from "../../lib/definitions";
 import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../../lib/util";
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense, useRef } from "react";
+import { StationType, STATION_TYPE_CODES } from "../../components/filters/FilterBase";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
@@ -223,6 +224,71 @@ function RecordsContent() {
     }
   }, [selectedStation, listVisibleOnly, visibleStations]);
 
+  const Download = () => {
+    const [selectedFormat, setSelectedFormat] = useState<string>('json');
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const stationType = filters.stationTypes !== 'any' ? (filters.stationTypes as StationType) : undefined;
+    
+    if (!evid) {
+      return (
+        <div className="p-2 bg-white text-sm text-stone-700">
+          <p>No event selected</p>
+        </div>
+      )
+    }
+
+    const downloadUrl = SMCRecordsURL(evid, {
+      format: selectedFormat,
+      ...(stationType && { sttype: STATION_TYPE_CODES[stationType] }),
+      ...(filters.stationName && { stname: filters.stationName }),
+      ...(filters.pgaMin !== null && filters.pgaMin !== undefined && { minpga: filters.pgaMin.toString() }),
+      ...(filters.pgaMax !== null && filters.pgaMax !== undefined && { maxpga: filters.pgaMax.toString() }),
+    });
+    
+    useEffect(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      }
+    }, [downloadUrl]);
+    
+    return (
+      <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
+        <div>
+          <select 
+            value={selectedFormat}
+            onChange={(e) => setSelectedFormat(e.target.value)}
+            className="w-full px-3 py-2 border border-stone-300 rounded text-stone-700"
+          >
+            {Object.entries(SMC_RECORDS_DATA_FORMATS).map(([name, outtype]) => (
+              <option key={outtype} value={outtype}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <textarea
+          ref={textareaRef}
+          readOnly
+          value={downloadUrl}
+          onClick={(e) => {
+            const target = e.currentTarget;
+            target.select();
+          }}
+          className="w-full px-3 py-2 border border-stone-300 rounded text-xs bg-stone-50 text-stone-600 cursor-text font-mono resize-none overflow-hidden"
+        />
+        
+        <button
+          onClick={() => window.open(downloadUrl, '_blank')}
+          className="w-full px-3 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
+        >
+          Open Link
+        </button>
+      </div>
+    );
+  };
+
   if (!evid) {
     return (
       <div className="flex-1 flex items-center justify-center bg-stone-50">
@@ -362,7 +428,7 @@ function RecordsContent() {
 
       <main className="flex-1 min-h-0">
         <section className="h-full min-h-0 relative overflow-hidden">
-          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<RecordLegend />}>
+          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<RecordLegend />} download={<Download />}>
             {visibleStations.map((station: RecordStation) => (
               <StationMarker 
                 key={station.code} 

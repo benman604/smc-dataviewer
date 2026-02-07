@@ -5,6 +5,17 @@ import React from 'react';
 export const STATION_TYPES = ['Array', 'Ground', 'Building', 'Bridge', 'Dam', 'Tunnel', 'Wharf', 'Other'] as const;
 export type StationType = typeof STATION_TYPES[number];
 
+export const STATION_TYPE_CODES: Record<StationType, string> = {
+    'Array': 'A',
+    'Ground': 'G',
+    'Building': 'B',
+    'Bridge': 'Br',
+    'Dam': 'D',
+    'Tunnel': 'T',
+    'Wharf': 'W',
+    'Other': 'O',
+};
+
 // Base filters shared between stations and records
 export type BaseFilters = {
     stationName: string;

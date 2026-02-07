@@ -191,7 +191,7 @@ export function parseImplicitUTCToLocal(time: string): Date {
 import { EventFilters } from '../components/filters/FilterEvents';
 import { Event } from './definitions';
 
-export function SMCDataURL(filters: EventFilters): string {
+export function SMCDataURL(filters: EventFilters, extraParams?: Record<string, string>): string {
   // if (filters) {
     const params = new URLSearchParams();
     if (filters.startDate) params.append("startdate", filters.startDate);
@@ -203,8 +203,16 @@ export function SMCDataURL(filters: EventFilters): string {
     if (filters.magMin !== null && filters.magMin !== undefined) params.append("minmag", filters.magMin.toString());
     if (filters.magMax !== null && filters.magMax !== undefined) params.append("maxmag", filters.magMax.toString());
     params.append("orderby", "time");
-    params.append("format", "json");
+    if (!extraParams?.format) {
+      params.append("format", "json");
+    }
     params.append("nodata", "404");
+
+    if (extraParams) {
+      for (const [key, value] of Object.entries(extraParams)) {
+        params.append(key, value);
+      }
+    }
 
     return `https://www.strongmotioncenter.org/wserv/events/query?${params.toString()}`;
   // } else {
@@ -233,15 +241,23 @@ export function CISNShakemapURL(event: Event): string {
   return "";
 }
 
-export function SMCRecordsURL(eventId: string): string {
+export function SMCRecordsURL(eventId: string, extraParams?: Record<string, string>): string {
   const params = new URLSearchParams();
   params.append("eventid", eventId);
   params.append("orderby", "epidist-asc");
   params.append("rettype", "metadata");
-  params.append("format", "json");
+  if (!extraParams?.format) {
+    params.append("format", "json");
+  }
   params.append("groupby", "station");
   params.append("abandoned", "true");
   params.append("nodata", "404");
+  
+  if (extraParams) {
+    for (const [key, value] of Object.entries(extraParams)) {
+      params.append(key, value);
+    }
+  }
   
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }

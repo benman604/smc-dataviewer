@@ -93,6 +93,19 @@ export const NETWORK_COLORS: Record<string, string> = {
 export const MARKER_BORDER_LIGHT = 'black';
 export const MARKER_BORDER_DARK = '#5e5e5e';
 
+export const SMC_EVENT_DATA_FORMATS: Record<string, string> = {
+	'GeoJSON': 'json',
+	'QuakeML': 'xml',
+	'GeoCSV': 'csv',
+	'CSV': 'csvfile',
+}
+
+export const SMC_RECORDS_DATA_FORMATS: Record<string, string> = {
+	'JSON': 'json',
+	'XML': 'xml',
+	'CSV': 'csv',
+}
+
 export type Event = {
 	cesmd_id: string;
 	geometry: {

@@ -8,7 +8,7 @@ import type { MapView } from "../components/Map";
 import FilterEvents from "../components/filters/FilterEvents";
 import EventLegend from "../components/legends/EventLegend";
 import { EventFilters } from "../components/filters/FilterEvents";
-import { Event } from "../lib/definitions";
+import { Event, SMC_EVENT_DATA_FORMATS } from "../lib/definitions";
 import { bboxToCenterZoom, timeToIconColor, faultIdToName, parseImplicitUTCToLocal, SMCDataURL, CISNShakemapURL, SHAKEMAP_THRESHOLD_EXCEPTIONS, getShakemapRegion, SHAKEMAP_DEFAULT_THRESHOLD } from "../lib/util";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
@@ -415,6 +415,55 @@ export default function Home() {
     }
   }, [selectedEvent, listVisibleOnly, visibleEvents]);
 
+  const Download = () => {
+    const [selectedFormat, setSelectedFormat] = useState<string>('json');
+    const downloadUrl = SMCDataURL(filters, { format: selectedFormat });
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    
+    useEffect(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+      }
+    }, [downloadUrl]);
+    
+    return (
+      <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
+        <div>
+          <select 
+            value={selectedFormat}
+            onChange={(e) => setSelectedFormat(e.target.value)}
+            className="w-full px-3 py-2 border border-stone-300 rounded text-stone-700"
+          >
+            {Object.entries(SMC_EVENT_DATA_FORMATS).map(([name, outtype]) => (
+              <option key={outtype} value={outtype}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <textarea
+          ref={textareaRef}
+          readOnly
+          value={downloadUrl}
+          onClick={(e) => {
+            const target = e.currentTarget;
+            target.select();
+          }}
+          className="w-full px-3 py-2 border border-stone-300 rounded text-xs bg-stone-50 text-stone-600 cursor-text font-mono resize-none overflow-hidden"
+        />
+        
+        <button
+          onClick={() => window.open(downloadUrl, '_blank')}
+          className="w-full px-3 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
+        >
+          Open Link
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
         <aside className="w-80 flex flex-col border-r border-stone-300">
@@ -542,7 +591,7 @@ export default function Home() {
 
         <main className="flex-1 min-h-0">
           <section className="h-full min-h-0 relative overflow-hidden">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} download={true}>
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} download={<Download />}>
               {showPolygons && <ShakemapPolygons />}
               {visibleEvents.toReversed().map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />
