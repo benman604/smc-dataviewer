@@ -241,7 +241,7 @@ export function CISNShakemapURL(event: Event): string {
   return "";
 }
 
-export function SMCRecordsURL(eventId: string, extraParams?: Record<string, string>): string {
+export function SMCEventRecordsURL(eventId: string, extraParams?: Record<string, string>): string {
   const params = new URLSearchParams();
   params.append("eventid", eventId);
   params.append("orderby", "epidist-asc");
@@ -262,14 +262,23 @@ export function SMCRecordsURL(eventId: string, extraParams?: Record<string, stri
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }
 
-export function SMCStationRecordsURL(stcode: string): string {
+export function SMCStationRecordsURL(stcode: string, extraParams?: Record<string, string>): string {
   const params = new URLSearchParams();
   params.append("stcode", stcode);
   params.append("orderby", "epidist-asc");
   params.append("rettype", "metadata");
-  params.append("format", "json");
+
+  if (!extraParams?.format) {
+    params.append("format", "json");
+  }
   params.append("groupby", "station");
   params.append("nodata", "404");
+  
+  if (extraParams) {
+    for (const [key, value] of Object.entries(extraParams)) {
+      params.append(key, value);
+    }
+  }
   
   return `https://www.strongmotioncenter.org/wserv/records/query?${params.toString()}`;
 }
@@ -288,7 +297,7 @@ const STATION_TYPE_CODES: Record<string, string> = {
   'Other': 'O',
 };
 
-export function SMCStationsURL(filters: StationFilters): string {
+export function SMCStationsURL(filters: StationFilters, extraParams?: Record<string, string>): string {
   const params = new URLSearchParams();
   
   // Networks
@@ -316,8 +325,16 @@ export function SMCStationsURL(filters: StationFilters): string {
     params.append("abandoned", "true");
   }
   
-  params.append("format", "json");
+  if (!extraParams?.format) {
+    params.append("format", "json");
+  }
   params.append("nodata", "404");
+
+  if (extraParams) {
+    for (const [key, value] of Object.entries(extraParams)) {
+      params.append(key, value);
+    }
+  }
   
   return `https://www.strongmotioncenter.org/wserv/stations/query?${params.toString()}`;
 }

@@ -442,24 +442,9 @@ export default function Home() {
             ))}
           </select>
         </div>
-        
-        <textarea
-          ref={textareaRef}
-          readOnly
-          value={downloadUrl}
-          onClick={(e) => {
-            const target = e.currentTarget;
-            target.select();
-          }}
-          className="w-full px-3 py-2 border border-stone-300 rounded text-xs bg-stone-50 text-stone-600 cursor-text font-mono resize-none overflow-hidden"
-        />
-        
-        <button
-          onClick={() => window.open(downloadUrl, '_blank')}
-          className="w-full px-3 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
-        >
-          Open Link
-        </button>
+        <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
+          {downloadUrl}
+        </a>
       </div>
     );
   };

@@ -9,7 +9,7 @@ import type { MapView } from "../../components/Map";
 import FilterEventRecords, { RecordFilters } from "../../components/filters/FilterEventRecords";
 import RecordLegend from "../../components/legends/RecordLegend";
 import { RecordStation, RecordsResponse, SMC_RECORDS_DATA_FORMATS } from "../../lib/definitions";
-import { SMCRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../../lib/util";
+import { SMCEventRecordsURL, pgaToColor, getMaxPGA, bboxToCenterZoom, parseImplicitUTCToLocal } from "../../lib/util";
 import { useState, useEffect, useMemo, Suspense, useRef } from "react";
 import { StationType, STATION_TYPE_CODES } from "../../components/filters/FilterBase";
 
@@ -68,7 +68,7 @@ function RecordsContent() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(SMCRecordsURL(evid));
+      const response = await fetch(SMCEventRecordsURL(evid));
       if (!response.ok) throw new Error(`Server returned ${response.status}`);
       const data: RecordsResponse = await response.json();
       console.log(data);
@@ -237,7 +237,7 @@ function RecordsContent() {
       )
     }
 
-    const downloadUrl = SMCRecordsURL(evid, {
+    const downloadUrl = SMCEventRecordsURL(evid, {
       format: selectedFormat,
       ...(stationType && { sttype: STATION_TYPE_CODES[stationType] }),
       ...(filters.stationName && { stname: filters.stationName }),
@@ -268,23 +268,9 @@ function RecordsContent() {
           </select>
         </div>
         
-        <textarea
-          ref={textareaRef}
-          readOnly
-          value={downloadUrl}
-          onClick={(e) => {
-            const target = e.currentTarget;
-            target.select();
-          }}
-          className="w-full px-3 py-2 border border-stone-300 rounded text-xs bg-stone-50 text-stone-600 cursor-text font-mono resize-none overflow-hidden"
-        />
-        
-        <button
-          onClick={() => window.open(downloadUrl, '_blank')}
-          className="w-full px-3 py-2 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700"
-        >
-          Open Link
-        </button>
+        <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
+          {downloadUrl}
+        </a>
       </div>
     );
   };

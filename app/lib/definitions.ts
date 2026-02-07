@@ -99,6 +99,7 @@ export const SMC_EVENT_DATA_FORMATS: Record<string, string> = {
 	'GeoCSV': 'csv',
 	'CSV': 'csvfile',
 }
+export const SMC_STATIONS_DATA_FORMATS: Record<string, string> = SMC_EVENT_DATA_FORMATS; // same formats for stations and events
 
 export const SMC_RECORDS_DATA_FORMATS: Record<string, string> = {
 	'JSON': 'json',
