@@ -6,6 +6,7 @@ const Map = dynamic(() => import('../../components/Map'), { ssr: false });
 const StationMarker = dynamic(() => import('../../components/markers/StationMarker'), { ssr: false });
 const EpicenterMarker = dynamic(() => import('../../components/markers/EpicenterMarker'), { ssr: false });
 import type { MapView } from "../../components/Map";
+import Download from "../../components/Download";
 import FilterEventRecords, { RecordFilters } from "../../components/filters/FilterEventRecords";
 import RecordLegend from "../../components/legends/RecordLegend";
 import { RecordStation, RecordsResponse, SMC_RECORDS_DATA_FORMATS } from "../../lib/definitions";
@@ -224,11 +225,7 @@ function RecordsContent() {
     }
   }, [selectedStation, listVisibleOnly, visibleStations]);
 
-  const Download = () => {
-    const [selectedFormat, setSelectedFormat] = useState<string>('json');
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const stationType = filters.stationTypes !== 'any' ? (filters.stationTypes as StationType) : undefined;
-    
+  const renderDownload = () => {
     if (!evid) {
       return (
         <div className="p-2 bg-white text-sm text-stone-700">
@@ -237,42 +234,16 @@ function RecordsContent() {
       )
     }
 
+    const stationType = filters.stationTypes !== 'any' ? (filters.stationTypes as StationType) : undefined;
     const downloadUrl = SMCEventRecordsURL(evid, {
-      format: selectedFormat,
+      format: 'json',
       ...(stationType && { sttype: STATION_TYPE_CODES[stationType] }),
       ...(filters.stationName && { stname: filters.stationName }),
       ...(filters.pgaMin !== null && filters.pgaMin !== undefined && { minpga: filters.pgaMin.toString() }),
       ...(filters.pgaMax !== null && filters.pgaMax !== undefined && { maxpga: filters.pgaMax.toString() }),
     });
-    
-    useEffect(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-      }
-    }, [downloadUrl]);
-    
-    return (
-      <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
-        <div>
-          <select 
-            value={selectedFormat}
-            onChange={(e) => setSelectedFormat(e.target.value)}
-            className="w-full px-3 py-2 border border-stone-300 rounded text-stone-700"
-          >
-            {Object.entries(SMC_RECORDS_DATA_FORMATS).map(([name, outtype]) => (
-              <option key={outtype} value={outtype}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
-          {downloadUrl}
-        </a>
-      </div>
-    );
+
+    return <Download downloadUrl={downloadUrl} dataFormats={SMC_RECORDS_DATA_FORMATS} />;
   };
 
   if (!evid) {
@@ -414,7 +385,7 @@ function RecordsContent() {
 
       <main className="flex-1 min-h-0">
         <section className="h-full min-h-0 relative overflow-hidden">
-          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<RecordLegend />} download={<Download />}>
+          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<RecordLegend />} download={renderDownload()}>
             {visibleStations.map((station: RecordStation) => (
               <StationMarker 
                 key={station.code} 

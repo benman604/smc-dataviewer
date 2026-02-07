@@ -4,6 +4,7 @@ import Link from 'next/link';
 const Map = dynamic(() => import('../components/Map'), { ssr: false });
 const EventMarker = dynamic(() => import('../components/markers/EventMarker'), { ssr: false });
 const ShakemapPolygons = dynamic(() => import('../components/ShakemapPolygons'), { ssr: false });
+import Download from '../components/Download';
 import type { MapView } from "../components/Map";
 import FilterEvents from "../components/filters/FilterEvents";
 import EventLegend from "../components/legends/EventLegend";
@@ -415,39 +416,7 @@ export default function Home() {
     }
   }, [selectedEvent, listVisibleOnly, visibleEvents]);
 
-  const Download = () => {
-    const [selectedFormat, setSelectedFormat] = useState<string>('json');
-    const downloadUrl = SMCDataURL(filters, { format: selectedFormat });
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
-    useEffect(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-      }
-    }, [downloadUrl]);
-    
-    return (
-      <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
-        <div>
-          <select 
-            value={selectedFormat}
-            onChange={(e) => setSelectedFormat(e.target.value)}
-            className="w-full px-3 py-2 border border-stone-300 rounded text-stone-700"
-          >
-            {Object.entries(SMC_EVENT_DATA_FORMATS).map(([name, outtype]) => (
-              <option key={outtype} value={outtype}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
-          {downloadUrl}
-        </a>
-      </div>
-    );
-  };
+  const renderDownload = () => <Download downloadUrl={SMCDataURL(filters, { format: 'json' })} dataFormats={SMC_EVENT_DATA_FORMATS} />;
 
   return (
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
@@ -576,7 +545,7 @@ export default function Home() {
 
         <main className="flex-1 min-h-0">
           <section className="h-full min-h-0 relative overflow-hidden">
-            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} download={<Download />}>
+            <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<EventLegend />} download={renderDownload()}>
               {showPolygons && <ShakemapPolygons />}
               {visibleEvents.toReversed().map((event: Event, i) => (
                 <EventMarker key={i} event={event} onSelect={() => setSelectedEvent(event)} isSelected={selectedEvent === event} />

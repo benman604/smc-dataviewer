@@ -4,6 +4,7 @@ import Link from 'next/link';
 const Map = dynamic(() => import('../components/Map'), { ssr: false });
 const StationMarker = dynamic(() => import('../components/markers/StationMarker'), { ssr: false });
 import type { MapView } from "../components/Map";
+import Download from "../components/Download";
 import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/filters/FilterStations";
 import StationLegend from "../components/legends/StationLegend";
 import { StationFeature, StationsResponse, BaseStation, NETWORK_COLORS, SMC_STATIONS_DATA_FORMATS } from "../lib/definitions";
@@ -291,40 +292,7 @@ function StationsContent() {
     return NETWORK_COLORS[station.network] || '#d6932d';
   };
 
-  const Download = () => {
-    const [selectedFormat, setSelectedFormat] = useState<string>('json');
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const downloadUrl = SMCStationsURL(filters, { format: selectedFormat });
-    
-    useEffect(() => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-      }
-    }, [downloadUrl]);
-    
-    return (
-      <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
-        <div>
-          <select 
-            value={selectedFormat}
-            onChange={(e) => setSelectedFormat(e.target.value)}
-            className="w-full px-3 py-2 border border-stone-300 rounded text-stone-700"
-          >
-            {Object.entries(SMC_STATIONS_DATA_FORMATS).map(([name, outtype]) => (
-              <option key={outtype} value={outtype}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
-          {downloadUrl}
-        </a>
-      </div>
-    );
-  };
+  const renderDownload = () => <Download downloadUrl={SMCStationsURL(filters, { format: 'json' })} dataFormats={SMC_STATIONS_DATA_FORMATS} />;
 
   return (
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
@@ -435,7 +403,7 @@ function StationsContent() {
 
       <main className="flex-1 min-h-0">
         <section className="h-full min-h-0 relative overflow-hidden">
-          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<StationLegend />} animateView={false} download={<Download />}>
+          <Map view={view} updateMapView={updateMapView} onViewChange={(newView) => setView(newView)} legend={<StationLegend />} animateView={false} download={renderDownload()}>
             {visibleStations.length <= MAX_VISIBLE_STATIONS ? (
               visibleStations.map((station: StationInfo, i: number) => (
                 <StationMarker 
