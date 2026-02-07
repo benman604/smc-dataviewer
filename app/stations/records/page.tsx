@@ -255,17 +255,20 @@ function StationRecordsContent() {
   };
 
   const renderDownload = () => {
-    const downloadUrl = SMCStationRecordsURL(stcode, {
-      format: 'json',
-      ...(filters.evName && { evname: filters.evName }),
-      ...(filters.magMin !== null && filters.magMin !== undefined && { minmag: filters.magMin.toString() }),
-      ...(filters.magMax !== null && filters.magMax !== undefined && { maxmag: filters.magMax.toString() }),
-      ...(filters.startDate && { startdate: filters.startDate }),
-      ...(filters.endDate && { enddate: filters.endDate }),
-      ...(filters.faultTypes && filters.faultTypes.length > 0 && { faulttype: filters.faultTypes.join(',') }),
-    });
-
-    return <Download downloadUrl={downloadUrl} dataFormats={SMC_RECORDS_DATA_FORMATS} />;
+    return (
+      <Download
+        dataFormats={SMC_RECORDS_DATA_FORMATS}
+        buildUrl={(fmt) => SMCStationRecordsURL(stcode, {
+          format: fmt,
+          ...(filters.evName && { evname: filters.evName }),
+          ...(filters.magMin !== null && filters.magMin !== undefined && { minmag: filters.magMin.toString() }),
+          ...(filters.magMax !== null && filters.magMax !== undefined && { maxmag: filters.magMax.toString() }),
+          ...(filters.startDate && { startdate: filters.startDate }),
+          ...(filters.endDate && { enddate: filters.endDate }),
+          ...(filters.faultTypes && filters.faultTypes.length > 0 && { faulttype: filters.faultTypes.join(',') }),
+        })}
+      />
+    );
   };
 
   return (

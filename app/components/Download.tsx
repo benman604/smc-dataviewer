@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface DownloadProps {
-  downloadUrl: string;
   dataFormats: Record<string, string>;
+  buildUrl: (format: string) => string;
   onFormatChange?: (format: string) => void;
 }
 
-export default function Download({ downloadUrl, dataFormats, onFormatChange }: DownloadProps) {
-  const [selectedFormat, setSelectedFormat] = useState<string>(Object.values(dataFormats)[0] || 'json');
-  
+export default function Download({ dataFormats, buildUrl, onFormatChange }: DownloadProps) {
+  const defaultFormat = Object.values(dataFormats)[0] || 'json';
+  const [selectedFormat, setSelectedFormat] = useState<string>(defaultFormat);
+
+  const downloadUrl = useMemo(() => buildUrl(selectedFormat), [buildUrl, selectedFormat]);
+
   const handleFormatChange = (format: string) => {
     setSelectedFormat(format);
     onFormatChange?.(format);
   };
-  
+
   return (
     <div className="text-sm text-stone-700 flex flex-col gap-3 mt-2 w-64">
       <div>
@@ -29,7 +32,7 @@ export default function Download({ downloadUrl, dataFormats, onFormatChange }: D
           ))}
         </select>
       </div>
-      
+
       <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="overflow-wrap break-all text-xs text-blue-600 hover:text-blue-900">
         {downloadUrl}
       </a>

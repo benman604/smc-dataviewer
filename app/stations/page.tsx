@@ -292,7 +292,12 @@ function StationsContent() {
     return NETWORK_COLORS[station.network] || '#d6932d';
   };
 
-  const renderDownload = () => <Download downloadUrl={SMCStationsURL(filters, { format: 'json' })} dataFormats={SMC_STATIONS_DATA_FORMATS} />;
+  const renderDownload = () => (
+    <Download
+      dataFormats={SMC_STATIONS_DATA_FORMATS}
+      buildUrl={(fmt) => SMCStationsURL(filters, { format: fmt })}
+    />
+  );
 
   return (
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">

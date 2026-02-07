@@ -416,7 +416,12 @@ export default function Home() {
     }
   }, [selectedEvent, listVisibleOnly, visibleEvents]);
 
-  const renderDownload = () => <Download downloadUrl={SMCDataURL(filters, { format: 'json' })} dataFormats={SMC_EVENT_DATA_FORMATS} />;
+  const renderDownload = () => (
+    <Download
+      dataFormats={SMC_EVENT_DATA_FORMATS}
+      buildUrl={(fmt) => SMCDataURL(filters, { format: fmt })}
+    />
+  );
 
   return (
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">

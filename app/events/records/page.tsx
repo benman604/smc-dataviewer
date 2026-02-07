@@ -235,15 +235,18 @@ function RecordsContent() {
     }
 
     const stationType = filters.stationTypes !== 'any' ? (filters.stationTypes as StationType) : undefined;
-    const downloadUrl = SMCEventRecordsURL(evid, {
-      format: 'json',
-      ...(stationType && { sttype: STATION_TYPE_CODES[stationType] }),
-      ...(filters.stationName && { stname: filters.stationName }),
-      ...(filters.pgaMin !== null && filters.pgaMin !== undefined && { minpga: filters.pgaMin.toString() }),
-      ...(filters.pgaMax !== null && filters.pgaMax !== undefined && { maxpga: filters.pgaMax.toString() }),
-    });
-
-    return <Download downloadUrl={downloadUrl} dataFormats={SMC_RECORDS_DATA_FORMATS} />;
+    return (
+      <Download
+        dataFormats={SMC_RECORDS_DATA_FORMATS}
+        buildUrl={(fmt) => SMCEventRecordsURL(evid, {
+          format: fmt,
+          ...(stationType && { sttype: STATION_TYPE_CODES[stationType] }),
+          ...(filters.stationName && { stname: filters.stationName }),
+          ...(filters.pgaMin !== null && filters.pgaMin !== undefined && { minpga: filters.pgaMin.toString() }),
+          ...(filters.pgaMax !== null && filters.pgaMax !== undefined && { maxpga: filters.pgaMax.toString() }),
+        })}
+      />
+    );
   };
 
   if (!evid) {
