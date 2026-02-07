@@ -8,7 +8,7 @@ import FilterStations, { StationFilters, DEFAULT_NETWORKS } from "../components/
 import StationLegend from "../components/legends/StationLegend";
 import { StationFeature, StationsResponse, BaseStation, NETWORK_COLORS } from "../lib/definitions";
 import { SMCStationsURL, bboxToCenterZoom } from "../lib/util";
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense, useRef } from "react";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
@@ -94,6 +94,8 @@ function StationsContent() {
   const [stations, setStations] = useState<StationInfo[]>([]);
   const [selectedStation, setSelectedStation] = useState<StationInfo | null>(null);
   const [updateMapView, setUpdateMapView] = useState<boolean>(false);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const visibleStationsRef = useRef<StationInfo[]>([]);
   const [view, setView] = useState<MapView>({
     center: [37.8716, -122.2727], // Bay Area (Berkeley)
     zoom: 10,
@@ -160,6 +162,11 @@ function StationsContent() {
 
   // Apply local filters (site class, vs30)
   const visibleStations = useMemo(() => {
+    // During animation, return cached result to prevent flashing all stations
+    if (isAnimating) {
+      return visibleStationsRef.current;
+    }
+
     let filtered = stations.filter((station: StationInfo) => {
       // Site class filter
       if (filters.siteClass && station.siteclass !== filters.siteClass) {
@@ -187,7 +194,7 @@ function StationsContent() {
       return true;
     });
 
-    return filtered.sort((a: StationInfo, b: StationInfo) => {
+    const sorted = filtered.sort((a: StationInfo, b: StationInfo) => {
       let valA: string | number;
       let valB: string | number;
       
@@ -225,7 +232,11 @@ function StationsContent() {
         ? (valA as number) - (valB as number) 
         : (valB as number) - (valA as number);
     });
-  }, [stations, orderBy, view, filters.siteClass, filters.vs30Min, filters.vs30Max, selectedStation]);
+    
+    // Cache the result so we can return it during animation
+    visibleStationsRef.current = sorted;
+    return sorted;
+  }, [stations, orderBy, view, filters.siteClass, filters.vs30Min, filters.vs30Max, isAnimating]);
 
   useEffect(() => {
     fetchStations();
@@ -252,14 +263,17 @@ function StationsContent() {
     const needsZoom = visibleStations.length > MAX_VISIBLE_STATIONS;
     const newCenter: [number, number] = [selectedStation.latitude, selectedStation.longitude];
     const newZoom = needsZoom ? 12 : view.zoom;
-    // Calculate new bounds so visibleStations updates immediately
-    const newBounds = calculateBounds(newCenter, newZoom);
     
+    setIsAnimating(true);
     setView({
       center: newCenter,
       zoom: newZoom,
     });
     setUpdateMapView(!updateMapView);
+    
+    // Clear animating flag after animation completes (typically 300-500ms for map animation)
+    const timer = setTimeout(() => setIsAnimating(false), 500);
+    return () => clearTimeout(timer);
   }, [selectedStation]);
 
   // Scroll selected station into view
