@@ -15,7 +15,7 @@ import { useState, useEffect, useMemo, Suspense, useRef } from "react";
 import { StationType, STATION_TYPE_CODES } from "../../components/filters/FilterBase";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faFilter, faArrowDownWideShort, faArrowUpWideShort, faCircleXmark, faArrowLeft, faTable } from '@fortawesome/free-solid-svg-icons'
 
 type OrderBy = {
   field: "pga" | "pgv" | "sa1" | "epidist";
@@ -125,7 +125,8 @@ function RecordsContent() {
       const record = station.events[0]?.record;
       if (!record) return false;
 
-      const pga = getMaxPGA(station);
+      // const pga = getMaxPGA(station);
+      const pga = record.pgav2;
       const pgv = record.pgv;
       const sa1 = record.sa10;
 
@@ -268,11 +269,16 @@ function RecordsContent() {
     <div className="flex flex-1 min-h-0 bg-stone-100 border-r-4 border-stone-300">
       <aside className="w-80 flex flex-col border-r border-stone-300">
         <div className="px-4 pt-4 pb-2 border-b border-b-stone-300">
-          {/* Back link and event info */}
-          <Link href={backUrl} className="text-blue-600 hover:text-blue-800 text-sm">
-            <FontAwesomeIcon icon={faArrowLeft} className="mr-1" />
-            Back to Earthquakes
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href={backUrl} className="text-blue-600 hover:text-blue-800 text-sm">
+              <FontAwesomeIcon icon={faArrowLeft} className="mr-1" />
+              Back to Earthquakes
+            </Link>
+            <a href={`https://www.strongmotioncenter.org/cgi-bin/CESMD/iqr_dist_DM2.pl?IQRID=${evid}&SFlag=0&Flag=2`} target='_blank' className="text-blue-600 hover:text-blue-800 text-sm">
+              <FontAwesomeIcon icon={faTable} className="mr-1" />
+              Tabular
+            </a>
+          </div>
           
           {eventInfo && (
             <div className="mt-2">
@@ -468,26 +474,39 @@ function RecordsContent() {
                   <div className="mt-3">
                     <h3 className="font-semibold text-sm mb-1">Record Data</h3>
                     <div className="grid grid-cols-2 gap-1 text-xs">
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">PGA:</span> {getMaxPGA(selectedStation).toFixed(4)} g
-                      </div>
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">PGV:</span> {selectedStation.events[0].record.pgv?.toFixed(2) ?? '-'} cm/s
-                      </div>
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">PGD:</span> {selectedStation.events[0].record.pgd?.toFixed(2) ?? '-'} cm
-                      </div>
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Epicentral Dist:</span> {selectedStation.events[0].record.epidist?.toFixed(1) ?? '-'} km
                       </div>
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">SA(0.3):</span> {selectedStation.events[0].record.sa03?.toFixed(4) ?? '-'}
+                      <div className="bg-stone-100 p-1.5 rounded">
+                        <span className="font-medium">Fault Dist:</span> {selectedStation.events[0].record.fault_dist?.toFixed(1) ?? '-'} km
                       </div>
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">SA(1.0):</span> {selectedStation.events[0].record.sa10?.toFixed(4) ?? '-'}
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Peak ground acceleration of horizontal channels of processed data (g)</span>
+                        <span className="font-medium">PGA (Ground):</span> {selectedStation.events[0].record.pgav2?.toFixed(4) ?? '-'} g
                       </div>
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">SA(3.0):</span> {selectedStation.events[0].record.sa30?.toFixed(4) ?? '-'}
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Peak structure acceleration (g)</span>
+                        <span className="font-medium">PGA (Struct):</span> {selectedStation.events[0].record.pga_str ?? '-'} g
+                      </div>
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Peak ground velocity (cm/sec)</span>
+                        <span className="font-medium">PGV:</span> {selectedStation.events[0].record.pgv?.toFixed(2) ?? '-'} cm/s
+                      </div>
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Peak ground displacement (cm)</span>
+                        <span className="font-medium">PGD:</span> {selectedStation.events[0].record.pgd?.toFixed(2) ?? '-'} cm
+                      </div>
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Spectral acceleration at 0.3s (g)</span>
+                        <span className="font-medium">SA(0.3):</span> {selectedStation.events[0].record.sa03?.toFixed(4) ?? '-'} g
+                      </div>
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Spectral acceleration at 1.0s (g)</span>
+                        <span className="font-medium">SA(1.0):</span> {selectedStation.events[0].record.sa10?.toFixed(4) ?? '-'} g
+                      </div>
+                      <div className="relative group bg-stone-100 p-1.5 rounded">
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-75">Spectral acceleration at 3.0s (g)</span>
+                        <span className="font-medium">SA(3.0):</span> {selectedStation.events[0].record.sa30?.toFixed(4) ?? '-'} g
                       </div>
                     </div>
 
@@ -495,7 +514,7 @@ function RecordsContent() {
                       href={`http://strongmotioncenter.org/NCESMD/data/${selectedStation.events[0].cesmd_id}/${selectedStation.network.toLowerCase()}${selectedStation.code.toLowerCase()}.pdf`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                      className="mt-3 rounded block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
                     >
                       View Record (PDF)
                     </a>

@@ -5,7 +5,7 @@ export default function AttributionPage() {
   return (
     <div className="flex-1 bg-stone-50 py-12">
       <div className="max-w-3xl mx-auto px-6">
-        <h1 className="text-3xl font-bold merriweather mb-6">Attribution</h1>
+        <h1 className="text-3xl font-bold merriweather mb-6">Data Attribution</h1>
 
         <div className="space-y-6 text-stone-700 leading-relaxed">
           <p>

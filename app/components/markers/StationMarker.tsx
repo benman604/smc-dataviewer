@@ -29,7 +29,7 @@ export default function StationMarker({ station, onSelect, isSelected = false, f
     );
     
     const size = 12;
-    const strokeWidth = isSelected ? 5 : 1;
+    const strokeWidth = isSelected ? 5 : 2;
     const iconShape = station.status !== 'Active' ? 'diamond' : 
         station.type == "Ground" ? 'circle' :
         station.type == "Building" ? 'square' : 'triangle';

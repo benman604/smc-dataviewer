@@ -479,50 +479,52 @@ function StationsContent() {
                 </p>
 
                 <div className="mt-3">
-                  <h3 className="font-semibold text-sm mb-1">Station Details</h3>
+                    {(selectedStation.channels || selectedStation.numRecorders || selectedStation.Vs30 || selectedStation.Vs30_info || selectedStation.geology || selectedStation.recorder_type || selectedStation.crl_orientation || selectedStation.effdate || selectedStation.location) && (
+                    <h3 className="font-semibold text-sm mb-1">Station Details</h3>
+                    )}
                   <div className="grid grid-cols-2 gap-1 text-xs">
                     {selectedStation.channels && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Channels:</span> {selectedStation.channels}
                       </div>
                     )}
                     {selectedStation.numRecorders && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Recorders:</span> {selectedStation.numRecorders}
                       </div>
                     )}
                     {selectedStation.Vs30 && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Vs30:</span> {selectedStation.Vs30} m/s
                       </div>
                     )}
                     {selectedStation.Vs30_info && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Vs30 Info:</span> {selectedStation.Vs30_info}
                       </div>
                     )}
                     {selectedStation.geology && (
-                      <div className="bg-stone-100 p-1.5 col-span-2">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Geology:</span> {selectedStation.geology}
                       </div>
                     )}
-                    {selectedStation.effdate && (
-                      <div className="bg-stone-100 p-1.5">
-                        <span className="font-medium">Effective Date:</span> {selectedStation.effdate}
-                      </div>
-                    )}
                     {selectedStation.recorder_type && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Recorder Type:</span> {selectedStation.recorder_type}
                       </div>
                     )}
                     {selectedStation.crl_orientation && (
-                      <div className="bg-stone-100 p-1.5">
+                      <div className="bg-stone-100 p-1.5 rounded">
                         <span className="font-medium">Orientation:</span> {selectedStation.crl_orientation}°
                       </div>
                     )}
+                    {selectedStation.effdate && (
+                      <div className="bg-stone-100 p-1.5 col-span-2 rounded">
+                        <span className="font-medium">Effective Date:</span> {selectedStation.effdate}
+                      </div>
+                    )}
                     {selectedStation.location && (
-                      <div className="bg-stone-100 p-1.5 col-span-2">
+                      <div className="bg-stone-100 p-1.5 col-span-2 rounded">
                         <span className="font-medium">Location:</span> {selectedStation.location}
                       </div>
                     )}
@@ -530,13 +532,13 @@ function StationsContent() {
 
                   {selectedStation.bldtype && (
                     <div className="mt-2">
-                      <h4 className="font-semibold text-xs mb-1">Building Info</h4>
+                      <h4 className="font-semibold text-sm mb-1">Building Info</h4>
                       <div className="grid grid-cols-2 gap-1 text-xs">
-                        <div className="bg-stone-100 p-1.5">
+                        <div className="bg-stone-100 p-1.5 rounded">
                           <span className="font-medium">Type:</span> {selectedStation.bldtype}
                         </div>
                         {selectedStation.bldheight && (
-                          <div className="bg-stone-100 p-1.5">
+                          <div className="bg-stone-100 p-1.5 rounded">
                             <span className="font-medium">Height:</span> {selectedStation.bldheight}
                           </div>
                         )}
@@ -550,15 +552,15 @@ function StationsContent() {
                     </div>
                   )}
 
-                  <div className="mt-3 flex gap-2">
+                  {/* <div className="mt-3 w-full"> */}
                     <Link
                       href={`/stations/records?stcode=${selectedStation.network}${selectedStation.code}`}
-                      className="flex-1 text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
+                      className="mt-3 rounded block w-full text-center py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700"
                     >
-                      Records
+                      Recorded Events
                     </Link>
                     
-                    {selectedStation.stationpage && (
+                    {/* {selectedStation.stationpage && (
                       <a
                         href={selectedStation.stationpage}
                         target="_blank"
@@ -567,8 +569,8 @@ function StationsContent() {
                       >
                         Station Page
                       </a>
-                    )}
-                  </div>
+                    )} */}
+                  {/* </div> */}
                 </div>
               </>
             )}

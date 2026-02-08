@@ -91,7 +91,7 @@ export const NETWORK_COLORS: Record<string, string> = {
 
 // Marker border colors for map themes
 export const MARKER_BORDER_LIGHT = 'black';
-export const MARKER_BORDER_DARK = '#5e5e5e';
+export const MARKER_BORDER_DARK = 'gray';
 
 export const SMC_EVENT_DATA_FORMATS: Record<string, string> = {
 	'GeoJSON': 'json',

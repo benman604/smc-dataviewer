@@ -171,7 +171,7 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
     } catch (e) {}
     return 'osm';
   });
-  const [showLegend, setShowLegend] = useState<boolean>(false);
+  const [showLegend, setShowLegend] = useState<boolean>(true);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
   const [showDownload, setShowDownload] = useState<boolean>(false);
   const base = basemaps[basemap];
