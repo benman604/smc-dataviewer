@@ -174,13 +174,36 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
   const [showLegend, setShowLegend] = useState<boolean>(true);
   const [showBasemap, setShowBasemap] = useState<boolean>(false);
   const [showDownload, setShowDownload] = useState<boolean>(false);
+  const [showFaults, setShowFaults] = useState<boolean>(true);
   const base = basemaps[basemap];
+
+  // ArcGIS faults MapServer (tiles)
+  const arcgisFaultsUrl = 'https://earthquake.usgs.gov/arcgis/rest/services/haz/hazfaults2014/MapServer/tile/{z}/{y}/{x}';
+  const arcgisBaseUrl = 'https://earthquake.usgs.gov/arcgis/rest/services/haz/hazfaults2014/MapServer';
+  const [arcgisLegend, setArcgisLegend] = useState<any | null>(null);
 
   useEffect(() => {
     try {
       localStorage.setItem('strongmotion:basemap', basemap);
     } catch (e) {}
   }, [basemap]);
+
+  // Fetch ArcGIS legend JSON when faults are shown (once)
+  useEffect(() => {
+    if (!showFaults || arcgisLegend) return;
+    let cancelled = false;
+    const url = `${arcgisBaseUrl}/legend?f=json`;
+    fetch(url)
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error('Legend fetch failed')))
+      .then((data) => {
+        if (cancelled) return;
+        setArcgisLegend(data);
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch ArcGIS legend:', err);
+      });
+    return () => { cancelled = true; };
+  }, [showFaults, arcgisLegend]);
   
   // Clear any stale Leaflet instance on the container during hot reload
   // This fixes "Map container is being reused by another instance" error
@@ -238,6 +261,17 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
             />
           )}
 
+          {/* ArcGIS faults layer: sits above basemap/overlays but below markers (children) */}
+          {showFaults && (
+            <TileLayer
+              key="arcgis-faults"
+              attribution={'USGS'}
+              url={arcgisFaultsUrl}
+              zIndex={500}
+              opacity={0.9}
+            />
+          )}
+
           {children}
         </MapThemeContext.Provider>
 
@@ -248,6 +282,46 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
               {legend && React.isValidElement(legend)
                 ? React.cloneElement(legend as any, { onClose: () => setShowLegend(false) })
                 : legend}
+
+              {/* ArcGIS faults legend (when available and faults visible) */}
+              {showFaults && arcgisLegend && (
+                <div className="mt-2 text-xs text-stone-700">
+                  {Array.isArray(arcgisLegend.layers) && arcgisLegend.layers.map((layer: any) => (
+                    <div key={layer.layerId} className="mb-2">
+                      <div className="font-medium text-sm">{layer.layerName}</div>
+                      <div className="mt-1 flex flex-col gap-1">
+                        {Array.isArray(layer.legend) && layer.legend.map((entry: any, i: number) => (
+                          <div key={i} className="flex items-center gap-2">
+                            {entry.imageData ? (
+                              <img
+                                src={`data:${entry.contentType};base64,${entry.imageData}`}
+                                alt={entry.label || ''}
+                                width={entry.width}
+                                height={entry.height}
+                              />
+                            ) : null}
+                            <div className="text-xs">{entry.label || '\u00A0'}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Show/hide faults toggle inside legend (simple blue link) */}
+              <div className="mt-2">
+                <a
+                  href="#"
+                  className="text-blue-600 hover:underline text-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowFaults((s) => !s);
+                  }}
+                >
+                  {showFaults ? 'Hide fault lines' : 'Show fault lines'}
+                </a>
+              </div>
             </div>
           )}
 
@@ -322,6 +396,8 @@ const Map = forwardRef<MapHandle, MapProps>(function Map({ view, children, onVie
               <FontAwesomeIcon icon={faDownload} />
             </button>
           )}
+
+          
         </div>
 
       </div>
